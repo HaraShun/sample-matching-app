@@ -35,6 +35,10 @@
   margin: 0;
 } */
 
+Heading[level="5"] {
+  background-color: #c7f0c7;
+}
+
 /* --------------------------------------- */
 
 .amplify-ai-conversation {
