@@ -1,6 +1,6 @@
 import { AIConversation } from "@aws-amplify/ui-react-ai";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { Card, View, Flex, Heading, Divider, Avatar, Button } from "@aws-amplify/ui-react"; 
+import { Card, View, Flex, Heading, Divider, Avatar, Button } from "@aws-amplify/ui-react";
 import { useAIConversation } from "./client";
 import "./App.css";
 
@@ -13,9 +13,9 @@ function App() {
     handleSendMessage,
   ] = useAIConversation("chat");
 
-  function Header ({ signOut }: any) {
+  function Header({ signOut }: any) {
     return (
-      <View 
+      <View
         position="fixed"
         width="100%"
         backgroundColor="white"
@@ -35,18 +35,18 @@ function App() {
             Sign out
           </Button>
         </Flex>
-        <Divider/>
-    </View>
+        <Divider />
+      </View>
     )
   }
 
-  function WellcomeMessageCard () {
+  function WellcomeMessageCard() {
     return (
-      
-      <Card>
-        <Heading level={4}>こんにちは！<br/><br/>あなたの「出身地」,「学生時代の部活」,「趣味」,「好きな映画・ドラマ」,「好きな料理ジャンル」,「休日の過ごし方」,「大学の学部」等を入力してみてください。<br/>相性の良い人をレコメンドします。</Heading>
 
-        <Heading level={5}>【入力例】<br/>部署は公共事業部、出身地は東京、学生時代の部活はテニス部、趣味はサッカー観戦、好きな映画はクリストファー・ノーラン作品、好きな料理はラーメン、休日は子どもと遊ぶ、大学時代は商学部、です。相性の良い人をレコメンドして。</Heading>
+      <Card>
+        <Heading level={4}>こんにちは！<br /><br />あなたの「出身地」,「学生時代の部活」,「趣味」,「好きな映画・ドラマ」,「好きな料理ジャンル」,「休日の過ごし方」,「大学の学部」等を入力してみてください。<br />相性の良い人をレコメンドします。</Heading>
+
+        <Heading level={5}><br />【入力例】<br />部署は公共事業部、出身地は東京、学生時代の部活はテニス部、趣味はサッカー観戦、好きな映画はクリストファー・ノーラン作品、好きな料理はラーメン、休日の過ごし方は子どもと遊ぶこと、大学時代は商学部、です。相性の良い人をレコメンドして。</Heading>
       </Card>
 
     )
@@ -62,7 +62,7 @@ function App() {
             isLoading={isLoading}
             handleSendMessage={handleSendMessage}
             welcomeMessage={
-              <WellcomeMessageCard/>
+              <WellcomeMessageCard />
             }
             displayText={{
               getMessageTimestampText: (date) => new Intl.DateTimeFormat('ja-JP', {
@@ -84,7 +84,7 @@ function App() {
             }}
           />
         </Card>
-    )}
+      )}
 
     </Authenticator>
   )
