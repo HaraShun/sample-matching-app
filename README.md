@@ -1,3 +1,3 @@
 ## Architecture Diagram
 
-[](/images/diagram.png)
+[](./images/diagram.png)
