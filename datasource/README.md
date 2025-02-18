@@ -6,7 +6,14 @@ Knowledge Base の `データソース` とする。
 
 100名分のテストデータは ChatGPT に生成してもらいました。
 
-## デプロイ
+
+## Pythonコード実行
+```
+$ python generate-sample-employee-data.py
+```
+
+
+## S3 アップロード
 
 ```
 $ aws s3api create-bucket --bucket {my-datasource-bucket} --region ap-northeast-1 --create-bucket-configuration LocationConstraint=ap-northeast-1

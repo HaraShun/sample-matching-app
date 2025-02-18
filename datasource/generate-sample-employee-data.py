@@ -35,7 +35,8 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
         "プログラミング", "DIY", "ヨガ", "筋トレ", "ランニング", "水泳",
         "ボードゲーム", "パズル", "コレクション", "手芸", "楽器演奏",
         "ダンス", "カラオケ", "ガーデニング", "ペット", "鉄道旅行",
-        "天体観測", "ボランティア", "マジック", "ドローン撮影", "外国語学習"
+        "天体観測", "ボランティア", "マジック", "ドローン撮影", "外国語学習",
+        "華道", "茶道", "テニス", "フットサル", "ゲーム"
     ]
 
     movies = [
@@ -109,6 +110,39 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
         "Wei", "颯汰", "克明", "麻莉亜", "次郎", "美郷", "文麿", "令"
     ]
 
+    nearest_stations = [
+        "門前仲町駅", "清澄白河駅", "東京駅", "大手町駅", "日本橋駅", "三越前駅"
+        "淀屋橋駅", "北浜駅", "西九条駅", "名古屋駅"
+    ]
+
+    favorite_foods = [
+        "ラーメン", "寿司", "ハンバーガー", "ピザ", "カレーライス",
+        "天ぷら", "うどん", "そば", "お好み焼き", "たこ焼き",
+        "餃子", "チャーハン", "麻婆豆腐", "ビビンバ", "キムチ",
+        "トムヤムクン", "グリーンカレー", "フォー", "ナンとカレー", "タコス",
+        "ステーキ", "ホットドッグ", "パスタ", "リゾット", "シュラスコ",
+        "ロコモコ", "刺身", "すき焼き", "しゃぶしゃぶ", "アイスクリーム",
+        "クラフトビール", "日本酒", "赤ワイン", "ラム酒", "ウィスキー",
+        "カクテル", "緑茶", "炭酸飲料", "紅茶", "白ワイン"
+    ]
+
+    what_defines_you  = [
+        "好奇心旺盛", "几帳面", "社交的", "分析力が高い", "創造的",
+        "忍耐強い", "リーダーシップがある", "聞き上手", "感受性が豊か", "論理的",
+        "ユーモアがある", "冒険好き", "責任感が強い", "協調性がある", "計画的",
+        "独立心が強い", "楽観的", "慎重派", "情熱的", "柔軟性がある",
+        "音楽好き", "スポーツ好き", "読書好き", "旅行好き", "料理好き",
+        "動物好き", "ゲーム好き", "映画好き", "自然が好き", "アートに興味がある"
+    ]
+
+    gender  = [
+        "男性", "女性"
+    ]
+
+    year  = [
+        "20代", "30代", "40代", "50代", "60代", "70代"
+    ]
+
     # 従業員データ生成
     employees = []
     used_names = set()  # 重複チェック用
@@ -123,14 +157,19 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
                 break
         employee = {
             "名前": full_name,
+            "性別": random.choice(gender),
+            "年代": random.choice(year),
             "部署": random.choice(departments),
             "出身地": random.choice(prefectures),
             "学生時代の部活": random.choice(clubs),
-            "趣味": random.choice(hobbies),
+            "趣味、または特技": random.sample(hobbies, 3), # 3つ
             "好きな映画・ドラマ": random.choice(movies),
             "好きな料理ジャンル": random.choice(cuisines),
             "休日の過ごし方": random.choice(weekend_activities),
-            "大学の学部": random.choice(faculties)
+            "大学の学部": random.choice(faculties),
+            "最寄り駅": random.choice(nearest_stations),
+            "好きな食べ物、または飲み物": random.sample(favorite_foods, 3), # 3つ
+            "あなたに関するキーワード": random.choice(what_defines_you)
         }
         employees.append(employee)
     return employees
