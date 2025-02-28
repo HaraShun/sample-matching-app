@@ -10,7 +10,7 @@ knowledge_base_id = 'B2TTXCTYTP'
 model_arn = 'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
 
 def lambda_handler(event, context):
-    logger.info(f"Received event: {json.dumps(event)}")
+    logger.info(f"Received event: {json.dumps(event, ensure_ascii=False)}")
 
     try:
         # Check if the event is already a dict containing 'name'
@@ -27,8 +27,11 @@ def lambda_handler(event, context):
         if not person_name:
             return {
                 'statusCode': 400,
-                'body': json.dumps('Please provide a name in the request')
+                'body': json.dumps('Please provide a name in the request', ensure_ascii=False)
             }
+        
+        # Unicodeエスケープシーケンスをデコード
+        person_name = json.loads(json.dumps(person_name))
         
         prompt = f"""
         {person_name}さんの情報を元に、簡潔な自己紹介文を一人称で書いてください。
@@ -52,15 +55,15 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'body': json.dumps(generated_text)
+            'body': json.dumps(generated_text, ensure_ascii=False)
         }
     except json.JSONDecodeError:
         return {
             'statusCode': 400,
-            'body': json.dumps('Invalid JSON in request body')
+            'body': json.dumps('Invalid JSON in request body', ensure_ascii=False)
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps(f'Error: {str(e)}')
+            'body': json.dumps(f'Error: {str(e)}', ensure_ascii=False)
         }
