@@ -25,13 +25,14 @@ def lambda_handler(event, context):
                 'knowledgeBaseConfiguration': {
                     'knowledgeBaseId': 'B2TTXCTYTP',  # Knowledge Base ID
                     'modelArn': 'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',  # 使用するモデル
+                    # 'modelArn': 'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0',  # 使用するモデル
                     'generationConfiguration': {
                         'promptTemplate': {
                             'textPromptTemplate': '次の質問に対して、提供された情報のみを使用して回答してください。\n\n質問: {input}\n\nコンテキスト: $search_results$'
                         },
                         'inferenceConfig': {
                             'textInferenceConfig': {
-                                'maxTokens': 8000
+                                'maxTokens': 8192
                             }
                         }
                     },
