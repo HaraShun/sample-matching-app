@@ -18,7 +18,7 @@ def lambda_handler(event, context):
         # RetrieveAndGenerateリクエストのパラメータ
         request_params = {
             'input': {
-                'text': '2000名社員情報から特徴を鑑みてグルーピングして。ただし１グループの人数は 最小3人、最大8人までとして。'  # ユーザーの質問
+                'text': '2000名社員情報から特徴を鑑みてグルーピングして。ただし1グループの人数は 最小3人、最大8人までとしてください。そして必ずどこかのグループに属させてください。グループのメンバーを列挙してください。どのような特徴でグルーピングしたのかも述べてください。'  # ユーザーの質問
             },
             'retrieveAndGenerateConfiguration': {
                 'type': 'KNOWLEDGE_BASE',
