@@ -51,15 +51,52 @@ def lambda_handler(event, context):
         print("生成された回答:")
         print(response['output']['text'])
         
-        # 検索された参照情報を表示
+        # レスポンスの構造を安全に処理する
         print("\n参照された情報:")
-        for i, citation in enumerate(response['citations']):
-            print(f"\n引用 {i+1}:")
-            print(f"コンテンツ: {citation['retrievedReferences'][0]['content']['text']}")
-            print(f"ソース: {citation['retrievedReferences'][0]['location']['s3Location']['uri']}")
+        if 'citations' in response and response['citations']:
+            for i, citation in enumerate(response['citations']):
+                print(f"\n引用 {i+1}:")
+                
+                # retrievedReferencesが存在し、空でないことを確認
+                if ('retrievedReferences' in citation and 
+                    citation['retrievedReferences'] and 
+                    len(citation['retrievedReferences']) > 0):
+                    
+                    ref = citation['retrievedReferences'][0]
+                    
+                    # contentとtextが存在することを確認
+                    if 'content' in ref and 'text' in ref['content']:
+                        print(f"コンテンツ: {ref['content']['text']}")
+                    else:
+                        print("コンテンツ情報がありません")
+                    
+                    # locationとs3Locationが存在することを確認
+                    if ('location' in ref and 
+                        's3Location' in ref['location'] and 
+                        'uri' in ref['location']['s3Location']):
+                        print(f"ソース: {ref['location']['s3Location']['uri']}")
+                    else:
+                        print("ソース情報がありません")
+                else:
+                    print("この引用には参照情報がありません")
+        else:
+            print("引用情報がレスポンスに含まれていません")
+        
+        # デバッグ用: レスポンス全体の構造を確認（必要に応じてコメント解除）
+        # print("\nレスポンス全体の構造:")
+        # print(json.dumps(response, default=str, indent=2))
             
         return response
         
     except Exception as e:
         print(f"エラーが発生しました: {str(e)}")
-        return None
+        print(f"エラーの詳細: {e.__class__.__name__}")
+        import traceback
+        print(traceback.format_exc())
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'error': str(e),
+                'error_type': e.__class__.__name__
+            })
+        }
