@@ -3,7 +3,16 @@ import random
 from typing import List, Dict
 
 def generate_employee_data(count: int = 2000) -> List[Dict]:
-    # 基本データセット
+    """
+    ランダムな従業員データを生成する関数。
+
+    Args:
+        count (int): 生成する従業員データの数。デフォルトは2000。
+
+    Returns:
+        List[Dict]: 従業員データのリスト。
+    """
+
     departments = [
         "人事部", "財務部", "マーケティング部", "営業部", "開発部", "品質管理部",
         "カスタマーサポート部", "広報部", "法務部", "経営企画部", "調達部",
@@ -98,16 +107,14 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
     ]
 
     first_names = [
-        "翔太", "大輔", "健一", "直人", "達也", "亮", "学", "誠", "拓海",
-        "裕子", "美咲", "真理", "明日香", "彩", "美穂", "麻衣", "愛", "舞",
-        "陽子", "智子", "真由美", "恵美", "由美子", "京子", "幸子", "和子",
-        "優子", "明美", "友美", "香織", "直美", "順子", "典子", "早苗",
-        "久美子", "裕美", "真紀", "恵子", "美加子", "純子", "智美", "薫",
-        "陽一", "和也", "洋平", "拓也", "健太", "翔", "大地", "海斗", "蓮",
-        "優花", "萌", "さくら", "美咲", "陽菜", "優奈", "彩乃", "遥", "美月",
-        "結衣", "茜", "俊太郎", "駿太郎", "圭介", "智樹", "理沙", "沙織",
-        "凜", "由人", "宏明", "賢治", "由仁", "芽衣", "祐介",
-        "Wei", "颯汰", "克明", "麻莉亜", "次郎", "美郷", "文麿", "令"
+        "陽", "光", "優", "純", "薫", "凜", "翼", "千尋", "涼", "悠", "透", 
+        "真", "直", "和", "響", "泉", "海", "空", "明", "望", "望月", "樹",
+        "陽向", "怜", "翠", "慶", "輝", "智", "晶", "怜奈", "悠人", "悠希",
+        "慧", "実", "尚", "春", "悠真", "葵", "律", "馨", "楓", "円", "玲",
+        "祥", "綾", "朝陽", "海月", "悠生", "瑞希", "優衣", "奏", "詩", "颯",
+        "静", "千歳", "朔", "飛鳥", "渚", "彬", "遥", "青", "雅", "玲央", 
+        "朋", "夏希", "洸", "翔", "大地", "怜央", "奏多", "慧悟", "礼央",
+        "陽翔", "柚", "優月", "望美", "綾人", "京", "仁", "悠人", "聖", "礼"
     ]
 
     nearest_stations = [
@@ -126,7 +133,7 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
         "カクテル", "緑茶", "炭酸飲料", "紅茶", "白ワイン"
     ]
 
-    what_defines_you  = [
+    what_defines_you = [
         "好奇心旺盛", "几帳面", "社交的", "分析力が高い", "創造的",
         "忍耐強い", "リーダーシップがある", "聞き上手", "感受性が豊か", "論理的",
         "ユーモアがある", "冒険好き", "責任感が強い", "協調性がある", "計画的",
@@ -135,17 +142,19 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
         "動物好き", "ゲーム好き", "映画好き", "自然が好き", "アートに興味がある"
     ]
 
-    gender  = [
+    gender = [
         "男性", "女性"
     ]
 
-    year  = [
+    year = [
         "20代", "30代", "40代", "50代", "60代", "70代"
     ]
 
     # 従業員データ生成
     employees = []
     used_names = set()  # 重複チェック用
+    employee_id_counter = 1000  # IDカウンターの初期値を1000に設定
+
     while len(employees) < count:
         # 名前生成（重複チェック）
         while True:
@@ -155,23 +164,28 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
             if full_name not in used_names:
                 used_names.add(full_name)
                 break
+
         employee = {
+            "employee_id": employee_id_counter,  # IDの付与
             "名前": full_name,
             "性別": random.choice(gender),
             "年代": random.choice(year),
             "部署": random.choice(departments),
             "出身地": random.choice(prefectures),
             "学生時代の部活": random.choice(clubs),
-            "趣味、または特技": random.sample(hobbies, 3), # 3つ
+            "趣味、または特技": random.sample(hobbies, 3),  # 3つ
             "好きな映画・ドラマ": random.choice(movies),
             "好きな料理ジャンル": random.choice(cuisines),
             "休日の過ごし方": random.choice(weekend_activities),
             "大学の学部": random.choice(faculties),
             "最寄り駅": random.choice(nearest_stations),
-            "好きな食べ物、または飲み物": random.sample(favorite_foods, 3), # 3つ
+            "好きな食べ物、または飲み物": random.sample(favorite_foods, 3),  # 3つ
             "あなたに関するキーワード": random.choice(what_defines_you)
         }
+
         employees.append(employee)
+        employee_id_counter += 1  # IDカウンターをインクリメント
+
     return employees
 
 # データ生成
