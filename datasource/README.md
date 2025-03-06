@@ -12,6 +12,10 @@ Knowledge Base の `データソース` とする。
 $ python generate-sample-employee-data.py
 ```
 
+## JSON Line 化
+```
+$ jq -c '.[]' 340-sample-employee-data.json > flat-340-sample-employee-data.jsonl
+```
 
 ## S3 アップロード
 
