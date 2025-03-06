@@ -58,17 +58,6 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
         "アフリカ料理"
     ]
 
-    weekend_activities = [
-        "映画鑑賞", "読書", "スポーツ", "ショッピング", "料理研究", "温泉",
-        "旅行", "ドライブ", "カフェ巡り", "美術館巡り", "博物館巡り",
-        "ライブ参戦", "スポーツ観戦", "DIY", "家庭菜園", "ペットと遊ぶ",
-        "プログラミング", "ゲーム", "楽器演奏", "ヨガ", "筋トレ",
-        "ランニング", "サイクリング", "ハイキング", "写真撮影", "絵画",
-        "習い事", "ボランティア活動", "勉強", "資格取得", "釣り",
-        "キャンプ", "パーティー", "友人と会う", "家族と過ごす", "寝て過ごす",
-        "動画配信サービス視聴", "音楽鑑賞", "掃除", "整理整頓"
-    ]
-
     faculties = [
         "法学部", "経済学部", "経営学部", "商学部", "文学部", "教育学部",
         "理学部", "工学部", "医学部", "歯学部", "薬学部", "看護学部",
@@ -158,13 +147,11 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
             "部署": random.choice(departments),
             "出身地": random.choice(prefectures),
             "学生時代の部活": random.choice(clubs),
-            "趣味、または特技": random.sample(hobbies, 3),  # 3つ
-            "好きな映画・ドラマ": random.choice(movies),
+            "趣味、または特技": random.sample(hobbies),
             "好きな料理ジャンル": random.choice(cuisines),
-            "休日の過ごし方": random.choice(weekend_activities),
             "大学の学部": random.choice(faculties),
             "最寄り駅": random.choice(nearest_stations),
-            "好きな食べ物、または飲み物": random.sample(favorite_foods, 3),  # 3つ
+            "好きな食べ物、または飲み物": random.sample(favorite_foods),
             "あなたに関するキーワード": random.choice(what_defines_you)
         }
 
