@@ -35,7 +35,7 @@ for cluster in range(n_clusters):
     cluster_users = [users[i] for i in range(len(users)) if cluster_labels[i] == cluster]
     cluster_chunks = " ".join([user[2] for user in cluster_users])
     
-    # Claude 3.5 Haikuを使用してクラスター特性の要約
+    # Claude 3 Haikuを使用してクラスター特性の要約
     response = bedrock.converse(
         modelId='anthropic.claude-3-haiku-20240307-v1:0',
         messages=[
