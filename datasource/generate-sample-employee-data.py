@@ -2,12 +2,12 @@ import json
 import random
 from typing import List, Dict
 
-def generate_employee_data(count: int = 2000) -> List[Dict]:
+def generate_employee_data(count: int = 340) -> List[Dict]:
     """
     ランダムな従業員データを生成する関数。
 
     Args:
-        count (int): 生成する従業員データの数。デフォルトは2000。
+        count (int): 生成する従業員データの数。デフォルトは340。
 
     Returns:
         List[Dict]: 従業員データのリスト。
@@ -131,7 +131,7 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
     # 従業員データ生成
     employees = []
     used_names = set()  # 重複チェック用
-    employee_id_counter = 1000  # IDカウンターの初期値を1000に設定
+    employee_id_counter = 1001  # IDカウンターの初期値を1000に設定
 
     while len(employees) < count:
         # 名前生成（重複チェック）
@@ -151,10 +151,10 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
             "部署": random.choice(departments),
             "出身地": random.choice(prefectures),
             "学生時代の部活": random.choice(clubs),
-            "趣味": random.sample(hobbies),
+            "趣味": random.choice(hobbies),
             "大学の学部": random.choice(faculties),
             "最寄り駅": random.choice(nearest_stations),
-            "好きな食べ物、飲み物、料理ジャンル": random.sample(favorite_foods),
+            "好きな食べ物、飲み物、料理ジャンル": random.choice(favorite_foods),
             "あなたに関するキーワード": random.choice(what_defines_you)
         }
 
@@ -164,10 +164,10 @@ def generate_employee_data(count: int = 2000) -> List[Dict]:
     return employees
 
 # データ生成
-employees_data = generate_employee_data(2000)
+employees_data = generate_employee_data(340)
 
 # JSONファイルに出力
-output_file = "2000-sample-employee-data.json"  # 出力ファイル名を指定
+output_file = "340-sample-employee-data.json"  # 出力ファイル名を指定
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump(employees_data, f, ensure_ascii=False, indent=4)
 
