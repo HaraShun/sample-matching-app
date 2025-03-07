@@ -34,7 +34,27 @@ cluster_labels = kmeans.fit_predict(embeddings)
 for cluster in range(n_clusters):
     cluster_users = [users[i] for i in range(len(users)) if cluster_labels[i] == cluster]
     cluster_chunks = " ".join([user[2] for user in cluster_users])
-    
+
+    # プロンプトを変数として定義
+    prompt_template = f"""Human: あなたはデータサイエンティストです。全社員のデータを閲覧しグループ分けできる権限を持っています。以下の条件を踏まえて、社員全員を趣味や好きな食べ物などの特徴をもとに、7人以下5人以上のグループに分類してください。
+
+条件:
+1.特徴:社員は趣味、好きな食べ物、特技などの特徴を持っています。
+2.グループサイズ:各グループは7名以下、5名以上としてください。
+3.分類基準:
+・趣味、食べ物、特技で最も共通点の多い人をグループ化してください。
+・同じ共通点で8人以上いる場合、7人以下5人以上のグループを複数作ってください。
+・どのグループにも入らない人はそれだけで一つのグループにしてください。
+・すべての人を必ずグループに分類してください。
+4.対象:社員全員
+5.出力形式:
+・各グループに共通項がわかる簡単なグループ名を付けてください。
+・各グループのメンバー全員のIDをリスト形式で表示してください。
+
+{cluster_chunks}
+
+Assistant:"""
+
     # Claude 3.5 Sonnet を使用してクラスター特性の要約
     response = bedrock.converse(
         modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',
@@ -43,7 +63,7 @@ for cluster in range(n_clusters):
                 "role": "user",
                 "content": [
                     {
-                        "text": f"Human: あなたはデータサイエンティストです。全社員のデータを閲覧しグループ分けできる権限を持っています。以下の条件を踏まえて、社員全員を趣味や好きな食べ物などの特徴をもとに、7人以下5人以上のグループに分類してください。\n\n条件:\n1.特徴:社員は趣味、好きな食べ物、特技などの特徴を持っています。\n2.グループサイズ:各グループは7名以下、5名以上としてください。\n3.分類基準:\n・趣味、食べ物、特技で最も共通点の多い人をグループ化してください。\n・同じ共通点で8人以上いる場合、7人以下5人以上のグループを複数作ってください。\n・どのグループにも入らない人はそれだけで一つのグループにしてください。\n・すべての人を必ずグループに分類してください。\n4.対象:社員全員\n5.出力形式:\n・各グループに共通項がわかる簡単なグループ名を付けてください。\n・各グループのメンバー全員のIDをリスト形式で表示してください。\n\n{cluster_chunks}\n\nAssistant:"
+                        "text": prompt_template
                     }
                 ]
             }
@@ -64,10 +84,9 @@ for cluster in range(n_clusters):
             "maxTokens": 8192 # haiku の Max 値 4096, Sonnet 3.5 の Max 値 8192
         }
     )
-    
+
     # レスポンスから回答を取得
     summary = response['output']['message']['content'][0]['text']
-    
     print(f"Cluster {cluster} 特性:")
     print(summary.strip())
     print("---")
