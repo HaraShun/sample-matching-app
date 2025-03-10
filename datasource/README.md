@@ -26,3 +26,9 @@ $ aws s3api create-bucket --bucket {my-datasource-bucket} --region ap-northeast-
 ```
 $ aws s3 cp test-user-data.json.json s3://{my-datasource-bucket}/
 ```
+
+
+## 「ID」「D」「E」「F」列だけ、 CSV 抽出するコマンド
+```
+$ cat 340-sample-employee-data.json | jq -r '.[] | [.employee_id, .hobby, .favourite_food_drink_cuisine, (.keywords | join(";"))] | @csv' > output.csv 
+```
