@@ -4,17 +4,18 @@ import psycopg2
 import numpy as np
 from sklearn.cluster import KMeans
 import ast
+import os
 
 # Bedrockクライアントの設定
 bedrock = boto3.client(service_name='bedrock-runtime', region_name='ap-northeast-1')
 
 # データベース接続
 conn = psycopg2.connect(
-    dbname="xx",
-    user="xx",
-    password="xx",
-    host="xx.ap-northeast-1.rds.amazonaws.com",
-    port="5432"
+    dbname=os.environ.get('DB_NAME'),
+    user=os.environ.get('DB_USER'),
+    password=os.environ.get('DB_PASSWORD'),
+    host=os.environ.get('DB_HOST'),
+    port=os.environ.get('DB_PORT', '5432')  # デフォルト値を設定
 )
 
 # ユーザーデータの取得
@@ -36,24 +37,33 @@ for cluster in range(n_clusters):
     cluster_chunks = " ".join([user[2] for user in cluster_users])
 
     # プロンプトを変数として定義
-    prompt_template = f"""Human: あなたはデータサイエンティストです。全社員のデータを閲覧しグループ分けできる権限を持っています。以下の条件を踏まえて、社員全員を趣味や好きな食べ物などの特徴をもとに、7人以下5人以上のグループに分類してください。
+    prompt_template = f"""
+    Human: あなたはデータサイエンティストです。
+    全社員のデータを閲覧しグループ分けできる権限を持っています。
+    社員全員を趣味や好きな食べ物などの特徴をもとにグループに分類してください。
 
-条件:
-1.特徴:社員は趣味、好きな食べ物、特技などの特徴を持っています。
-2.グループサイズ:各グループは7名以下、5名以上としてください。
-3.分類基準:
-・趣味、食べ物、特技で最も共通点の多い人をグループ化してください。
-・同じ共通点で8人以上いる場合、7人以下5人以上のグループを複数作ってください。
-・どのグループにも入らない人はそれだけで一つのグループにしてください。
-・すべての人を必ずグループに分類してください。
-4.対象:社員全員
-5.出力形式:
-・各グループに共通項がわかる簡単なグループ名を付けてください。
-・各グループのメンバー全員のIDをリスト形式で表示してください。
+    分類基準:
+    ・趣味、食べ物、出身地、特技で最も共通点の多い人をグループにしてください。
+    ・最寄り駅は考慮しない。
+    ・一つのグループは7人以下5人以上。
+    ・同じ共通点で8人以上いる場合、7人以下5人以上のグループに分割して全員を入れてください。
+    ・同じ名前のグループをそのグループに入る全員がもれなくは入れる数だけ作る。
+    ・どのグループにも入らない人はそれだけで一つのグループにしてください。
 
-{cluster_chunks}
+    出力形式:
+    ・各グループに共通項がわかる簡単なグループ名を付けてください。
+    ・各グループのメンバー全員のIDをリスト形式で表示してください。
 
-Assistant:"""
+    {cluster_chunks}
+
+    Assistant:
+    """
+
+    # 「Human:」: ユーザー（人間）からの入力や指示を示します。この部分には、AIがどのようなタスクを実行するかを指示する文が含まれます。
+    # 「{cluster_chunks}」: クラスター分類されたデータの特徴や情報を表します。この部分は、実際にはデータベースから取得した情報を埋め込むためのプレースホルダーです。
+    # 「Assistant:」: AIアシスタントが応答する部分を示します。AIは「Human:」で与えられた指示に基づいて、ここで回答を生成します。
+    # この構造は、AIモデルが人間の指示に基づいて特定のタスクを実行し、結果を返すためのフレームワークです。
+
 
     # Claude 3.5 Sonnet を使用してクラスター特性の要約
     response = bedrock.converse(
@@ -69,7 +79,7 @@ Assistant:"""
             }
         ],
         inferenceConfig={
-            "temperature": 0,
+            "temperature": 1.0,
             # 【 温度パラメータ 】
             # 生成される応答のランダム性を制御します
             # 0に設定すると、非常に決定的で再現性の高い応答が生成されます
