@@ -9,6 +9,9 @@ import os
 # Bedrockクライアントの設定
 bedrock = boto3.client(service_name='bedrock-runtime', region_name='ap-northeast-1')
 
+# S3 クライアントの設定
+s3 = boto3.client('s3', region_name='ap-northeast-1')
+
 # データベース接続
 conn = psycopg2.connect(
     dbname=os.environ.get('DB_NAME'),
@@ -102,6 +105,13 @@ for cluster in range(n_clusters):
     print(f"Cluster {cluster} 特性:")
     print(summary.strip())
     print("---")
+
+    # テキストファイルに保存
+    with open(f"cluster_{cluster}_grouping_result.txt", "w") as f:
+        f.write(summary.strip())
+
+    # S3 バケット「例）hara-datasource」にアップロード
+    s3.upload_file(f"cluster_{cluster}_grouping_result.txt", 'hara-datasource', f"cluster_{cluster}_grouping_result.txt")
 
 # データベース接続のクローズ
 cur.close()
