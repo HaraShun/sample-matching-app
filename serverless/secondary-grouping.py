@@ -1,6 +1,7 @@
 import boto3
 import ast
 import json
+import random
 
 # S3 クライアントの設定
 s3 = boto3.client('s3', region_name='ap-northeast-1')
@@ -69,14 +70,11 @@ def regroup_ids(summary):
 
 # JSON データを保存し、S3 にアップロード
 def save_and_upload_json(json_data, bucket_name, file_name):
-    with open("secondary_group_summary.json", "w") as f:
-        json.dump(json_data, f, indent=4, ensure_ascii=False)
+    json_content = json.dumps(json_data, indent=4, ensure_ascii=False)
+    s3.put_object(Body=json_content, Bucket=bucket_name, Key=file_name)
 
-    # S3 バケットにアップロード
-    s3.upload_file("secondary_group_summary.json", bucket_name, file_name)
-
-# メイン処理
-if __name__ == "__main__":
+# Lambda ハンドラー関数
+def lambda_handler(event, context):
     bucket_name = "hoge"
     file_name = "fuga.txt"
     summary = read_summary_file(bucket_name, file_name)
@@ -85,3 +83,12 @@ if __name__ == "__main__":
         json_data = regroup_ids(summary)
         print(json.dumps(json_data, indent=4, ensure_ascii=False))
         save_and_upload_json(json_data, bucket_name, "secondary_group_summary.json")
+        return {
+            "statusCode": 200,
+            "message": "Data processed successfully"
+        }
+    else:
+        return {
+            "statusCode": 500,
+            "message": "Failed to read file"
+        }
