@@ -33,6 +33,8 @@ def regroup_ids(summary):
             group_ids[current_group_name].extend(ids)
     
     json_data = []
+    discarded_members = []
+    
     for group_name, ids in group_ids.items():
         random.shuffle(ids)  # メンバー ID をシャッフル
         secondary_groups = []
@@ -40,6 +42,8 @@ def regroup_ids(summary):
             secondary_group = ids[i:i+8]
             if len(secondary_group) >= 5:  # 5人以上の2次グループのみ
                 secondary_groups.append(secondary_group)
+            else:
+                discarded_members.extend(secondary_group)  # 5人未満は切り捨てられたメンバーとして追加
         
         group_list = []
         for i, secondary_group in enumerate(secondary_groups):
@@ -51,6 +55,13 @@ def regroup_ids(summary):
         json_data.append({
             "theme": group_name,
             "group_list": group_list
+        })
+    
+    # 切り捨てられたメンバー一覧を追加
+    if discarded_members:
+        json_data.append({
+            "theme": "切り捨てられたメンバー一覧",
+            "id_list": discarded_members
         })
     
     return json_data
