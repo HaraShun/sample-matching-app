@@ -1,6 +1,7 @@
 import random
 import ast
 import boto3
+import json
 
 # S3 クライアントの設定
 s3 = boto3.client('s3', region_name='ap-northeast-1')
@@ -31,35 +32,36 @@ def regroup_ids(summary):
             ids = ast.literal_eval(ids)
             group_ids[current_group_name].extend(ids)
     
+    json_data = []
     for group_name, ids in group_ids.items():
         random.shuffle(ids)  # メンバー ID をシャッフル
         secondary_groups = []
         for i in range(0, len(ids), 8):
             secondary_group = ids[i:i+8]
-            secondary_groups.append(secondary_group)
+            if len(secondary_group) >= 5:  # 5人以上の2次グループのみ
+                secondary_groups.append(secondary_group)
         
-        groups.append((group_name, secondary_groups))
-    
-    return groups
-
-# 2次グループを表示し、テキストファイルに保存
-def print_and_save_secondary_groups(groups):
-    result = ""  # result 変数を定義
-    for group_name, secondary_groups in groups:
-        result += f"{group_name}:\n"
+        group_list = []
         for i, secondary_group in enumerate(secondary_groups):
-            if len(secondary_group) >= 5:  # 5人以上の2次グループのみ表示
-                result += f"2次グループ {i+1}: {secondary_group}\n"
-        result += "\n"
+            group_list.append({
+                "group_id": i+1,
+                "id_list": secondary_group
+            })
+        
+        json_data.append({
+            "theme": group_name,
+            "group_list": group_list
+        })
     
-    print(result)  # 結果をコンソールに表示
-    
-    # テキストファイルに保存
-    with open("secondary_group_summary.txt", "w") as f:
-        f.write(result)
+    return json_data
+
+# JSON データを保存し、S3 にアップロード
+def save_and_upload_json(json_data):
+    with open("secondary_group_summary.json", "w") as f:
+        json.dump(json_data, f, indent=4, ensure_ascii=False)
     
     # S3 バケット「例）hara-datasource」にアップロード
-    s3.upload_file("secondary_group_summary.txt", 'hara-datasource', "secondary_group_summary.txt")
+    s3.upload_file("secondary_group_summary.json", 'hara-datasource', "secondary_group_summary.json")
 
 # メイン処理
 if __name__ == "__main__":
@@ -67,5 +69,6 @@ if __name__ == "__main__":
     summary = read_summary_file(file_name)
     
     if summary:
-        groups = regroup_ids(summary)
-        print_and_save_secondary_groups(groups)
+        json_data = regroup_ids(summary)
+        print(json.dumps(json_data, indent=4, ensure_ascii=False))
+        save_and_upload_json(json_data)
