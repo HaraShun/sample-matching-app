@@ -1,7 +1,6 @@
-import boto3
 import ast
 import json
-import random
+import boto3
 
 # S3 クライアントの設定
 s3 = boto3.client('s3', region_name='ap-northeast-1')
@@ -28,23 +27,24 @@ def regroup_ids(summary):
             current_group_name = line.strip()
             group_ids[current_group_name] = []
         elif "メンバーID: " in line:
-            ids = line.split("メンバーID: ")[1].strip()
-            ids = ast.literal_eval(ids)
+            ids_str = line.split("メンバーID: ")[1].strip()
+            # "" で囲まれた文字列を正しく処理
+            ids = [id.strip('"') for id in ids_str.strip("[]").split(",")]
             group_ids[current_group_name].extend(ids)
 
     json_data = []
     discarded_members = []
 
     for group_name, ids in group_ids.items():
-        random.shuffle(ids) # メンバー ID をシャッフル
+        random.shuffle(ids)  # メンバー ID をシャッフル
         secondary_groups = []
 
         for i in range(0, len(ids), 8):
             secondary_group = ids[i:i+8]
-            if len(secondary_group) >= 5: # 5人以上の2次グループのみ
+            if len(secondary_group) >= 5:  # 5人以上の2次グループのみ
                 secondary_groups.append(secondary_group)
             else:
-                discarded_members.extend(secondary_group) # 5人未満は切り捨てられたメンバーとして追加
+                discarded_members.extend(secondary_group)  # 5人未満は切り捨てられたメンバーとして追加
 
         group_list = []
 
@@ -75,8 +75,8 @@ def save_and_upload_json(json_data, bucket_name, file_name):
 
 # Lambda ハンドラー関数
 def lambda_handler(event, context):
-    bucket_name = "hoge"
-    file_name = "fuga.txt"
+    bucket_name = "hara-datasource"
+    file_name = "fuga.json"
     summary = read_summary_file(bucket_name, file_name)
 
     if summary:
