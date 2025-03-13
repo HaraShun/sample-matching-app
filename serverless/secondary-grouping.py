@@ -1,6 +1,6 @@
-import ast
-import json
 import boto3
+import json
+import random
 
 # S3 クライアントの設定
 s3 = boto3.client('s3', region_name='ap-northeast-1')
@@ -28,8 +28,8 @@ def regroup_ids(summary):
             group_ids[current_group_name] = []
         elif "メンバーID: " in line:
             ids_str = line.split("メンバーID: ")[1].strip()
-            # "" で囲まれた文字列を正しく処理
-            ids = [id.strip('"') for id in ids_str.strip("[]").split(",")]
+            # [] を削除し、クォーテーションを含まないリストに変換
+            ids = [id.strip().strip('"') for id in ids_str.strip("[]").split(",")]
             group_ids[current_group_name].extend(ids)
 
     json_data = []
