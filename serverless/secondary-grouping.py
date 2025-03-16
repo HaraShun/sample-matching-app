@@ -36,21 +36,19 @@ def regroup_ids(summary):
     discarded_members = []
 
     for group_name, ids in group_ids.items():
-        random.shuffle(ids)  # メンバー ID をシャッフル
+        random.shuffle(ids) # メンバー ID をシャッフル
         secondary_groups = []
-
+        
         for i in range(0, len(ids), 8):
             secondary_group = ids[i:i+8]
-            if len(secondary_group) >= 5:  # 5人以上の2次グループのみ
+            if len(secondary_group) >= 5: # 5人以上の2次グループのみ
                 secondary_groups.append(secondary_group)
             else:
-                discarded_members.extend(secondary_group)  # 5人未満は切り捨てられたメンバーとして追加
+                discarded_members.extend(secondary_group) # 5人未満は切り捨てられたメンバーとして追加
 
         group_list = []
-
-        for i, secondary_group in enumerate(secondary_groups):
+        for secondary_group in secondary_groups:
             group_list.append({
-                "group_id": i+1,
                 "id_list": secondary_group
             })
 
@@ -76,13 +74,13 @@ def save_and_upload_json(json_data, bucket_name, file_name):
 # Lambda ハンドラー関数
 def lambda_handler(event, context):
     bucket_name = "hara-datasource"
-    file_name = "fuga.json"
+    file_name = "input/cluster_0_summary.txt"
     summary = read_summary_file(bucket_name, file_name)
 
     if summary:
         json_data = regroup_ids(summary)
         print(json.dumps(json_data, indent=4, ensure_ascii=False))
-        save_and_upload_json(json_data, bucket_name, "secondary_group_summary.json")
+        save_and_upload_json(json_data, bucket_name, "output/third_group_summary.json")
         return {
             "statusCode": 200,
             "message": "Data processed successfully"
