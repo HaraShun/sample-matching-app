@@ -121,7 +121,7 @@ def generate_employee_data(count: int = 340) -> List[Dict]:
     # 従業員データ生成
     employees = []
     used_names = set()  # 重複チェック用
-    employee_id_counter = 1001  # IDカウンターの初期値を1000に設定
+    employee_id_counter = 1001  # IDカウンターの初期値を1001に設定
 
     while len(employees) < count:
         # 名前生成（重複チェック）
@@ -133,15 +133,20 @@ def generate_employee_data(count: int = 340) -> List[Dict]:
                 used_names.add(full_name)
                 break
 
+        # 新しい employee_id 生成方法
+        fixed_part = "12345678-abcd-efgh-ijkl-12345678"
+        variable_part = f"{employee_id_counter:04d}"
+        employee_id = f"{fixed_part}{variable_part}"
+
         employee = {
-            "employee_id": employee_id_counter,  # IDの付与
+            "employee_id": employee_id,  # 新しい形式の ID
             "name": full_name,
             "gender": random.choice(gender),
             "age": random.choice(year),
             "departments": random.choice(departments),
             "nearest_station": random.choice(nearest_stations),
-            "hobby": random.choice(hobbies),
-            "favourite_food_drink_cuisine": random.choice(favorite_foods),
+            "hobby": random.sample(hobbies, random.randint(1, 3)),  # 1〜3個をランダムに選択
+            "favourite_food_drink_cuisine": random.sample(favorite_foods, random.randint(1, 3)),  # 1〜3個をランダムに選択
             "keywords": random.sample(what_defines_you, 3),  # 3つ
         }
 
