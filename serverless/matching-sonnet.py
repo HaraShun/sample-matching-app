@@ -109,11 +109,11 @@ for cluster in range(n_clusters):
     print("---")
 
     # テキストファイルに保存
-    with open(f"cluster_{cluster}_grouping_result.txt", "w") as f:
+    with open(f"/tmp/cluster_{cluster}_grouping_result.txt", "w") as f:
         f.write(summary.strip())
 
     # S3 バケット「例）hara-datasource」にアップロード
-    s3.upload_file(f"cluster_{cluster}_grouping_result.txt", 'hara-datasource', f"cluster_{cluster}_grouping_result.txt")
+    s3.upload_file(f"/tmp/cluster_{cluster}_grouping_result.txt", 'hara-datasource', f"cluster_{cluster}_grouping_result.txt")
 
 # データベース接続のクローズ
 cur.close()
