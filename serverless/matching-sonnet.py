@@ -12,14 +12,56 @@ bedrock = boto3.client(service_name='bedrock-runtime', region_name='ap-northeast
 # S3 クライアントの設定
 s3 = boto3.client('s3', region_name='ap-northeast-1')
 
+# Secrets Managerからデータベース接続情報を取得する関数
+def get_database_secret():
+    secret_name = "your-database-secret-name"  # Secrets Managerに保存したシークレット名
+    region_name = "ap-northeast-1"  # シークレットが保存されているリージョン
+    
+    # Secrets Managerクライアントの作成
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+    
+    try:
+        # シークレット値の取得
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+        
+        # シークレット文字列の取得とJSONへの変換
+        secret = get_secret_value_response['SecretString']
+        return json.loads(secret)
+    except Exception as e:
+        print(f"Error retrieving secret: {e}")
+        raise
+
 # データベース接続
-conn = psycopg2.connect(
-    dbname=os.environ.get('DB_NAME'),
-    user=os.environ.get('DB_USER'),
-    password=os.environ.get('DB_PASSWORD'),
-    host=os.environ.get('DB_HOST'),
-    port=os.environ.get('DB_PORT', '5432')  # デフォルト値を設定
-)
+def connect_to_database():
+    # Secrets Managerからデータベース接続情報を取得
+    db_credentials = get_database_secret()
+    
+    # 接続情報の取得
+    dbname = db_credentials.get('dbname')
+    user = db_credentials.get('username')
+    password = db_credentials.get('password')
+    host = db_credentials.get('host')
+    port = db_credentials.get('port', '5432')
+    
+    # データベース接続
+    conn = psycopg2.connect(
+        dbname=dbname,
+        user=user,
+        password=password,
+        host=host,
+        port=port
+    )
+    
+    return conn
+
+# メイン処理
+conn = connect_to_database()
 
 # ユーザーデータの取得
 cur = conn.cursor()
