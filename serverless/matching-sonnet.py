@@ -157,6 +157,39 @@ for cluster in range(n_clusters):
     # S3 バケット「例）hara-datasource」にアップロード
     s3.upload_file(f"/tmp/cluster_{cluster}_grouping_result.txt", 'hara-datasource', f"cluster_{cluster}_grouping_result.txt")
 
+# ------------------------------------------------------------------
+
+# コサイン類似度による評価を追加
+def evaluate_clustering_cosine(embeddings, cluster_labels):
+    unique_clusters = set(cluster_labels)
+    avg_similarities = []
+    
+    for cluster in unique_clusters:
+        # クラスター内のデータポイントを取得
+        cluster_points = embeddings[cluster_labels == cluster]
+        
+        # クラスター内のすべてのペア間のコサイン類似度を計算
+        if len(cluster_points) > 1:
+            from sklearn.metrics.pairwise import cosine_similarity
+            similarity_matrix = cosine_similarity(cluster_points)
+            # 対角要素(自分自身との類似度=1)を除外
+            similarities = similarity_matrix[np.triu_indices(len(similarity_matrix), k=1)]
+            avg_similarities.append(np.mean(similarities))
+    
+    return np.mean(avg_similarities) if avg_similarities else 0
+
+# クラスタリング評価の実行
+average_similarity = evaluate_clustering_cosine(embeddings, cluster_labels)
+print(f"Average cosine similarity within clusters: {average_similarity}")
+
+# 評価結果をS3にアップロード
+with open("/tmp/clustering_evaluation.txt", "w") as f:
+    f.write(f"Average cosine similarity within clusters: {average_similarity}")
+
+s3.upload_file("/tmp/clustering_evaluation.txt", 'hara-datasource', "clustering_evaluation.txt")
+
+# ------------------------------------------------------------------
+
 # データベース接続のクローズ
 cur.close()
 conn.close()
