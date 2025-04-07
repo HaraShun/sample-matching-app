@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     # S3バケットとオブジェクト情報の取得（環境変数または直接指定）
     bucket_name = os.environ.get('S3_BUCKET_NAME', 'hara-datasource')
     file_key = os.environ.get('S3_FILE_KEY', 'flat-340-sample-employee-data.jsonl')
-    output_key = os.environ.get('S3_OUTPUT_KEY', 'employee_grouping_results.json')
+    output_key = os.environ.get('S3_OUTPUT_KEY', 'employee_grouping_results.txt')
     
     try:
         # S3からJSONLデータを取得
@@ -45,6 +45,7 @@ def lambda_handler(event, context):
         
         # 各チャンクをClaudeに送信してグルーピング
         all_groups = {}
+        all_results_text = "# 社員グルーピング結果\n\n"
         
         for i, chunk in enumerate(chunks):
             print(f"Processing chunk {i+1}/{len(chunks)} with {len(chunk)} employees")
@@ -74,16 +75,27 @@ def lambda_handler(event, context):
             # レスポンスから回答を取得
             result = response['output']['message']['content'][0]['text']
             
+            # 結果をテキストに追加
+            all_results_text += f"## チャンク {i+1} の分析結果:\n\n{result}\n\n---\n\n"
+            
             # グループ情報を解析して統合
             chunk_groups = parse_groups(result)
             all_groups = merge_groups(all_groups, chunk_groups)
         
-        # 最終的なグループ情報をJSON形式で保存
+        # 最終的なグループ情報をテキスト形式で追加
+        all_results_text += "\n\n# 統合グループ情報\n\n"
+        for group_name, group_info in all_groups.items():
+            all_results_text += f"## {group_name}\n"
+            all_results_text += f"メンバー数: {len(group_info['members'])}\n"
+            all_results_text += f"理由: {group_info['reason']}\n"
+            all_results_text += f"メンバーID: {group_info['members']}\n\n"
+        
+        # 結果をS3にテキストファイルとしてアップロード
         s3.put_object(
             Bucket=bucket_name,
             Key=output_key,
-            Body=json.dumps(all_groups, ensure_ascii=False, indent=2),
-            ContentType='application/json'
+            Body=all_results_text,
+            ContentType='text/plain'
         )
         
         return {
