@@ -83,12 +83,11 @@ def lambda_handler(event, context):
             chunk_groups = parse_groups(result)
             all_groups = merge_groups(all_groups, chunk_groups)
 
-        # 最終的なグループ情報をテキスト形式で追加
+        # 最終的なグループ情報をテキスト形式で追加（理由部分は削除）
         all_results_text += "\n\n# 統合グループ情報\n\n"
         for group_name, group_info in all_groups.items():
             all_results_text += f"## {group_name}\n"
             all_results_text += f"メンバー数: {len(group_info['members'])}\n"
-            all_results_text += f"理由: {group_info['reason']}\n"
             all_results_text += f"メンバーID: {group_info['members']}\n\n"
 
         # 結果をS3にテキストファイルとしてアップロード（全体ファイル）
@@ -102,7 +101,7 @@ def lambda_handler(event, context):
         # 「統合グループ情報」以降のみを抽出してサマリーファイルとしてアップロード
         summary_start = all_results_text.find("# 統合グループ情報")
         summary_text = all_results_text[summary_start:]
-        
+
         s3.put_object(
             Bucket=bucket_name,
             Key=summary_output_key,
@@ -147,7 +146,6 @@ def create_prompt(employees):
 ・出力するグループ名は必ず最後に「グループ」をつける。
 ・各グループのメンバー全員のIDをリスト形式で表示する。
 ・各グループは、"メンバーID: []" の形式で出力する。
-・マッチング理由を説明する１文を追加する。
 
 社員データ:
 {employees_json}
@@ -166,8 +164,8 @@ def parse_groups(result):
         if "グループ" in line and ":" not in line and "メンバー" not in line:
             current_group = line.strip()
             if current_group not in groups:
-                groups[current_group] = {"members": [], "reason": ""}
-        
+                groups[current_group] = {"members": []}
+
         # メンバーIDを検出
         elif current_group and "メンバーID:" in line:
             try:
@@ -180,15 +178,11 @@ def parse_groups(result):
                 else:
                     # カンマ区切りの値
                     member_ids = [id.strip() for id in member_ids_str.split(',')]
-                
+
                 groups[current_group]["members"].extend(member_ids)
             except Exception as e:
                 print(f"Error parsing member IDs: {e}")
                 continue
-        
-        # マッチング理由を検出
-        elif current_group and ("理由" in line or "これらのメンバーは" in line):
-            groups[current_group]["reason"] = line.strip()
 
     return groups
 
@@ -198,10 +192,6 @@ def merge_groups(all_groups, new_groups):
         if group_name in all_groups:
             # 既存のグループにメンバーを追加
             all_groups[group_name]["members"].extend(group_info["members"])
-            # 理由が空の場合は新しい理由を使用
-            if not all_groups[group_name]["reason"] and group_info["reason"]:
-                all_groups[group_name]["reason"] = group_info["reason"]
-        
         else:
             # 新しいグループを追加
             all_groups[group_name] = group_info
