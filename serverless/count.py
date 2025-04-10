@@ -95,6 +95,7 @@ result = f"""
 作成された「theme」数: {unique_themes_count}
 作成された「グループ」数: {group_count}
 マッチング対象ユーザ数: {matching_users}
+精度: {total_ids} / {matching_users} ≈ {accuracy:.2f} %
 """
 
 # SNS通知
