@@ -36,35 +36,23 @@ def download_and_load_jsonl(bucket, key):
 # sample.json の処理
 sample_data = download_and_load_json(output_bucket, sample_json_path)
 
-all_ids = set()
-excluded_ids = set()
-themes = set()
-group_count = 0
+total_ids_count = 0
+excluded_ids_count = 0
 
 if sample_data:
     for theme_data in sample_data:
-        theme_name = theme_data.get("theme", None)
-        group_list = theme_data.get("group_list", None)
-
-        if not group_list:
-            continue
-
-        if theme_name == "切り捨てられたメンバー一覧":
+        group_list = theme_data.get("group_list", [])
+        
+        # 総 ID 数をカウント
+        for group in group_list:
+            total_ids_count += len(group.get("id_list", []))
+        
+        # 「切り捨てられたメンバー一覧」内の ID 数をカウント
+        if theme_data.get("theme") == "切り捨てられたメンバー一覧":
             for group in group_list:
-                excluded_ids.update(group.get("id_list", []))
-        else:
-            themes.add(theme_name)
-            group_count += len(group_list)
-            for group in group_list:
-                all_ids.update(group.get("id_list", []))
+                excluded_ids_count += len(group.get("id_list", []))
 
-    total_unique_ids = len(all_ids)
-    excluded_ids_count = len(excluded_ids)
-    remaining_ids_count = total_unique_ids - excluded_ids_count
-    unique_themes_count = len(themes)
-
-else:
-    total_unique_ids, excluded_ids_count, remaining_ids_count, unique_themes_count, group_count = 0, 0, 0, 0, 0
+remaining_ids_count = total_ids_count - excluded_ids_count
 
 # hoge.jsonl の処理
 hoge_data = download_and_load_jsonl(source_bucket, hoge_jsonl_path)
@@ -76,11 +64,9 @@ else:
 
 # 結果の表示
 results_message = (
-    f"登場する総 ID 数: {total_unique_ids}\n"
-    f"「切り捨てられたメンバー一覧」の ID 数を引いた ID 数: {remaining_ids_count}\n"
-    f"作成された「theme」数: {unique_themes_count}\n"
-    f"作成された「グループ」数: {group_count}\n"
-    f"「切り捨てられたメンバー一覧」内に出現する総 ID 数: {excluded_ids_count}\n"
+    f"登場する総 ID 数 (重複削除なし): {total_ids_count}\n"
+    f"「切り捨てられたメンバー一覧」内に出現する ID 数 (重複削除なし): {excluded_ids_count}\n"
+    f"「切り捨てられたメンバー一覧」の ID 数を引いた ID 数 (重複削除なし): {remaining_ids_count}\n"
     f"マッチング対象のユーザ数: {matching_users_count}"
 )
 
