@@ -76,6 +76,12 @@ unique_themes_count = len(themes)
 # マッチングユーザ数（hoge.jsonlの行数）
 matching_users = len(hoge_data) if hoge_data else 0
 
+# 精度を計算（ゼロ除算防止）
+try:
+    accuracy = total_ids / matching_users if matching_users > 0 else 0
+except ZeroDivisionError:
+    accuracy = 0
+
 # 現在時刻を取得
 jst = tz.gettz('Asia/Tokyo')
 current_time_str = datetime.now(tz=jst).strftime("%A, %B %d, %Y, %I:%M %p JST")
@@ -95,7 +101,7 @@ result = f"""
 作成された「theme」数: {unique_themes_count}
 作成された「グループ」数: {group_count}
 マッチング対象ユーザ数: {matching_users}
-精度: {total_ids} / {matching_users} ≈ {accuracy:.2f} %
+精度: {total_ids} / {matching_users} ≈ {accuracy:.2f}
 """
 
 # SNS通知
@@ -103,7 +109,7 @@ try:
     sns_client.publish(
         TopicArn=sns_topic_arn,
         Message=result,
-        Subject=time_message  # 時間帯メッセージを件名に挿入
+        Subject=time_message
     )
     print("通知送信済み")
 except Exception as e:
