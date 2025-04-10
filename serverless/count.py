@@ -1,84 +1,84 @@
 import json
 import boto3
 
-# AWS クライアントの初期化
+# AWSクライアントの初期化
 s3_client = boto3.client('s3')
 sns_client = boto3.client('sns')
 
-# S3 バケットとファイル情報
+# S3バケットとファイル情報
 source_bucket = "source-bucket"
 output_bucket = "output-bucket"
 sample_json_path = "primary/sample.json"
 hoge_jsonl_path = "hoge.jsonl"
 
-# SNS トピック ARN (事前に作成済みのものを指定)
+# SNSトピックARN
 sns_topic_arn = "arn:aws:sns:ap-northeast-1:123456789012:YourTopicName"
 
-# S3 からファイルをダウンロードして読み込む関数
 def download_and_load_json(bucket, key):
     try:
         response = s3_client.get_object(Bucket=bucket, Key=key)
-        content = response['Body'].read().decode('utf-8')
-        return json.loads(content)
+        return json.loads(response['Body'].read().decode('utf-8'))
     except Exception as e:
-        print(f"Error loading JSON from S3: {e}")
+        print(f"S3読み込みエラー: {e}")
         return None
 
 def download_and_load_jsonl(bucket, key):
     try:
         response = s3_client.get_object(Bucket=bucket, Key=key)
-        content = response['Body'].read().decode('utf-8').splitlines()
-        return [json.loads(line) for line in content if line.strip()]
+        return [json.loads(line) for line in response['Body'].read().decode('utf-8').splitlines() if line.strip()]
     except Exception as e:
-        print(f"Error loading JSONL from S3: {e}")
+        print(f"S3読み込みエラー: {e}")
         return None
 
-# sample.json の処理
+# データ処理
 sample_data = download_and_load_json(output_bucket, sample_json_path)
+hoge_data = download_and_load_jsonl(source_bucket, hoge_jsonl_path)
 
-total_ids_count = 0
+total_ids = 0
 excluded_ids_count = 0
+themes = set()
+group_count = 0
 
 if sample_data:
     for theme_data in sample_data:
-        group_list = theme_data.get("group_list", [])
+        theme_name = theme_data.get("theme")
+        groups = theme_data.get("group_list", [])
         
-        # 総 ID 数をカウント
-        for group in group_list:
-            total_ids_count += len(group.get("id_list", []))
+        # 総ID数カウント（重複あり）
+        for group in groups:
+            total_ids += len(group.get("id_list", []))
         
-        # 「切り捨てられたメンバー一覧」内の ID 数をカウント
-        if theme_data.get("theme") == "切り捨てられたメンバー一覧":
-            for group in group_list:
+        # 切り捨てられたメンバー処理
+        if theme_name == "切り捨てられたメンバー一覧":
+            for group in groups:
                 excluded_ids_count += len(group.get("id_list", []))
+        else:
+            themes.add(theme_name)
+            group_count += len(groups)
 
-remaining_ids_count = total_ids_count - excluded_ids_count
+remaining_ids = total_ids - excluded_ids_count
+unique_themes_count = len(themes)
 
-# hoge.jsonl の処理
-hoge_data = download_and_load_jsonl(source_bucket, hoge_jsonl_path)
+# マッチングユーザ数（hoge.jsonlの行数）
+matching_users = len(hoge_data) if hoge_data else 0
 
-if hoge_data:
-    matching_users_count = len(hoge_data)
-else:
-    matching_users_count = 0
+# 結果生成
+result = f"""
+登場する総 ID 数（重複含む）: {total_ids}
+「切り捨てられたメンバー一覧」内ID数: {excluded_ids_count}
+「切り捨てられたメンバー一覧」を除いたID数: {remaining_ids}
+作成された「theme」数: {unique_themes_count}
+作成された「グループ」数: {group_count}
+マッチング対象ユーザ数: {matching_users}
+"""
 
-# 結果の表示
-results_message = (
-    f"登場する総 ID 数 (重複削除なし): {total_ids_count}\n"
-    f"「切り捨てられたメンバー一覧」内に出現する ID 数 (重複削除なし): {excluded_ids_count}\n"
-    f"「切り捨てられたメンバー一覧」の ID 数を引いた ID 数 (重複削除なし): {remaining_ids_count}\n"
-    f"マッチング対象のユーザ数: {matching_users_count}"
-)
-
-print(results_message)
-
-# SNS による結果通知
+# SNS通知
 try:
     sns_client.publish(
         TopicArn=sns_topic_arn,
-        Message=results_message,
-        Subject="データ処理結果通知"
+        Message=result,
+        Subject="データ集計結果"
     )
-    print("SNS 通知が送信されました。")
+    print("通知送信済み")
 except Exception as e:
-    print(f"SNS 通知の送信中にエラーが発生しました: {e}")
+    print(f"SNSエラー: {e}")
