@@ -1,5 +1,7 @@
 import json
 import boto3
+from datetime import datetime
+import pytz
 
 # AWSクライアントの初期化
 s3_client = boto3.client('s3')
@@ -13,6 +15,18 @@ hoge_jsonl_path = "hoge.jsonl"
 
 # SNSトピックARN
 sns_topic_arn = "arn:aws:sns:ap-northeast-1:123456789012:YourTopicName"
+
+def get_time_based_message():
+    """実行時間帯に応じたメッセージを生成"""
+    jst = pytz.timezone('Asia/Tokyo')
+    current_hour = datetime.now(jst).hour
+    
+    if 0 <= current_hour < 12:
+        return "『趣味』の集計結果です"
+    elif 12 <= current_hour < 17:
+        return "『食べ物、飲み物』の集計結果です"
+    else:
+        return "『キーワード』の集計結果です"
 
 def download_and_load_json(bucket, key):
     try:
@@ -44,7 +58,7 @@ if sample_data:
         theme_name = theme_data.get("theme")
         groups = theme_data.get("group_list", [])
         
-        # 総ID数カウント（重複あり）
+        # 総ID数カウント（重複含む）
         for group in groups:
             total_ids += len(group.get("id_list", []))
         
@@ -62,8 +76,13 @@ unique_themes_count = len(themes)
 # マッチングユーザ数（hoge.jsonlの行数）
 matching_users = len(hoge_data) if hoge_data else 0
 
+# 時間帯に応じたメッセージを追加
+time_message = get_time_based_message()
+
 # 結果生成
 result = f"""
+{time_message}
+
 登場する総 ID 数（重複含む）: {total_ids}
 「切り捨てられたメンバー一覧」内ID数: {excluded_ids_count}
 「切り捨てられたメンバー一覧」を除いたID数: {remaining_ids}
