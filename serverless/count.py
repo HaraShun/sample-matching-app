@@ -1,7 +1,7 @@
 import json
 import boto3
 from datetime import datetime
-import pytz
+from dateutil import tz
 
 # AWSクライアントの初期化
 s3_client = boto3.client('s3')
@@ -18,8 +18,8 @@ sns_topic_arn = "arn:aws:sns:ap-northeast-1:123456789012:YourTopicName"
 
 def get_time_based_message():
     """実行時間帯に応じたメッセージを生成"""
-    jst = pytz.timezone('Asia/Tokyo')
-    current_hour = datetime.now(jst).hour
+    jst = tz.gettz('Asia/Tokyo')
+    current_hour = datetime.now(tz=jst).hour
     
     if 0 <= current_hour < 12:
         return "『趣味』の集計結果です"
@@ -39,7 +39,8 @@ def download_and_load_json(bucket, key):
 def download_and_load_jsonl(bucket, key):
     try:
         response = s3_client.get_object(Bucket=bucket, Key=key)
-        return [json.loads(line) for line in response['Body'].read().decode('utf-8').splitlines() if line.strip()]
+        content = response['Body'].read().decode('utf-8').splitlines()
+        return [json.loads(line) for line in content if line.strip()]
     except Exception as e:
         print(f"S3読み込みエラー: {e}")
         return None
@@ -64,8 +65,7 @@ if sample_data:
         
         # 切り捨てられたメンバー処理
         if theme_name == "切り捨てられたメンバー一覧":
-            for group in groups:
-                excluded_ids_count += len(group.get("id_list", []))
+            excluded_ids_count += sum(len(g.get("id_list", [])) for g in groups)
         else:
             themes.add(theme_name)
             group_count += len(groups)
@@ -76,12 +76,18 @@ unique_themes_count = len(themes)
 # マッチングユーザ数（hoge.jsonlの行数）
 matching_users = len(hoge_data) if hoge_data else 0
 
-# 時間帯に応じたメッセージを追加
+# 現在時刻を取得
+jst = tz.gettz('Asia/Tokyo')
+current_time_str = datetime.now(tz=jst).strftime("%A, %B %d, %Y, %I:%M %p JST")
+
+# 時間帯に応じたメッセージを生成
 time_message = get_time_based_message()
 
 # 結果生成
 result = f"""
 {time_message}
+
+現在時刻: {current_time_str}
 
 登場する総 ID 数（重複含む）: {total_ids}
 「切り捨てられたメンバー一覧」内ID数: {excluded_ids_count}
@@ -96,7 +102,7 @@ try:
     sns_client.publish(
         TopicArn=sns_topic_arn,
         Message=result,
-        Subject="データ集計結果"
+        Subject=time_message  # 時間帯メッセージを件名に挿入
     )
     print("通知送信済み")
 except Exception as e:
