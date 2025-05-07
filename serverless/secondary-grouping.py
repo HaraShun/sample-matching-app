@@ -1,6 +1,7 @@
 import boto3
 import json
 import random
+import re
 
 # S3 クライアントの設定
 s3 = boto3.client('s3', region_name='ap-northeast-1')
@@ -32,7 +33,7 @@ def regroup_ids(summary):
             continue
             
         # グループ名行を検出
-        if "グループ」" in line:
+        if re.search(r'「.*?」?グループ|「.*?グループ」', line):
             # 前のグループのデータを保存（存在する場合）
             if current_group_name and current_ids:
                 groups_data[current_group_name] = {
