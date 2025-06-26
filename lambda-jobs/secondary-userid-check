@@ -1,0 +1,176 @@
+import json
+import boto3
+import os
+import logging
+from boto3.dynamodb.conditions import Key
+
+# 環境変数から DynamoDB テーブル名を取得
+DYNAMODB = boto3.resource("dynamodb")
+USER_TABLE_NAME = os.environ.get("USER_TABLE_NAME")
+USER_TABLE = DYNAMODB.Table(USER_TABLE_NAME)
+BUCKET_NAME = os.environ.get("BUCKET_NAME")
+INPUT_OBJECT_KEY = os.environ.get("INPUT_OBJECT_KEY")
+OUTPUT_OBJECT_KEY = os.environ.get("OUTPUT_OBJECT_KEY")
+
+# ロガーの設定
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Lambda クライアントの設定
+LAMBDA_CLIENT = boto3.client('lambda')
+CHECK_HOLIDAY_LAMBDA_NAME = os.environ.get("CHECK_HOLIDAY_LAMBDA_NAME")
+
+def lambda_handler(event, context):
+
+    # S3 クライアントの設定
+    s3 = boto3.client("s3")
+
+    """S3 の JSON ファイルを取得し、DynamoDBのユーザーテーブル に存在しないIDのみ除外し、再度S3にJSONでアップロードする""" 
+    if is_today_holiday():
+        logger.info("今日は祝日です。処理をスキップします。")
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': '今日は祝日なので処理をスキップしました'})
+        }       
+    try:
+        # S3 からJSONファイルを読み込む
+        json_file = s3.get_object(Bucket=BUCKET_NAME, Key=INPUT_OBJECT_KEY)
+        input_json_data = json_file["Body"].read().decode("utf-8")
+        
+        # JSONデータを解析
+        input_data = json.loads(input_json_data)
+        
+        # 出力用のデータ構造を初期化（入力データをコピー）
+        output_data = input_data.copy()
+        
+        # 除外されたメンバーの統計を記録
+        excluded_members_count = 0
+        excluded_members_detail = []
+        
+        # groups配列内の各グループを処理
+        if "groups" in output_data and isinstance(output_data["groups"], list):
+            processed_groups = []
+            
+            for group in output_data["groups"]:
+                if "member_ids" in group and isinstance(group["member_ids"], list):
+                    # 有効なメンバーIDのみを格納するリスト
+                    valid_member_ids = []
+                    
+                    # 各メンバーIDをDynamoDBで検証
+                    for member_id in group["member_ids"]:
+                        if member_id and isinstance(member_id, str) and member_id.strip():
+                            # DynamoDBでユーザーの存在確認
+                            user_exists = check_user_exists(member_id.strip())
+                            
+                            if user_exists:
+                                valid_member_ids.append(member_id)
+                            else:
+                                excluded_members_count += 1
+                                excluded_members_detail.append({
+                                    "member_id": member_id,
+                                    "group_name": group.get("group_name", "Unknown")
+                                })
+                                logger.info(f'存在しないメンバーIDのため除外する: {member_id} (グループ: {group.get("group_name", "Unknown")})')
+                    
+                    # グループのメンバーIDリストを更新
+                    group["member_ids"] = valid_member_ids
+                    group["member_count"] = len(valid_member_ids)
+                    
+                    # メンバーが残っているグループのみ保持
+                    if len(valid_member_ids) > 0:
+                        processed_groups.append(group)
+                    else:
+                        logger.info(f'全メンバーが除外されたため、グループを削除: {group.get("group_name", "Unknown")}')
+                else:
+                    # member_idsが存在しない場合はそのまま保持
+                    processed_groups.append(group)
+            
+            # 処理されたグループリストで更新
+            output_data["groups"] = processed_groups
+            
+            # サマリー情報を更新
+            if "summary" in output_data:
+                output_data["summary"]["total_groups"] = len(processed_groups)
+                output_data["summary"]["total_members_grouped"] = sum(
+                    group.get("member_count", 0) for group in processed_groups
+                )
+        
+        # 処理結果の統計情報を追加
+        if "processing_info" not in output_data:
+            output_data["processing_info"] = {}
+        
+        output_data["processing_info"]["user_validation"] = {
+            "excluded_members_count": excluded_members_count,
+            "excluded_members_detail": excluded_members_detail,
+            "validation_completed": True
+        }
+        
+        # JSONファイルとしてS3へアップロード
+        output_json = json.dumps(output_data, ensure_ascii=False, indent=2)
+        
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=OUTPUT_OBJECT_KEY,
+            Body=output_json,
+            ContentType='application/json'
+        )
+        
+        logger.info(f'S3アップロード完了: {excluded_members_count}名のメンバーを除外')
+
+        return response(200, {
+            "message": "Success",
+            "excluded_members_count": excluded_members_count,
+            "remaining_groups_count": len(output_data.get("groups", [])),
+            "total_valid_members": sum(group.get("member_count", 0) for group in output_data.get("groups", []))
+        })
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON解析エラー: {str(e)}", exc_info=True)
+        return response(400, {"message": "JSON解析エラー", "error": str(e)})
+    except Exception as e:
+        logger.error(f"その他エラー: {str(e)}", exc_info=True)
+        return response(500, {"message": "その他エラー", "error": str(e)})
+
+def check_user_exists(user_id):
+    """DynamoDBでユーザーの存在確認を行う関数"""
+    try:
+        result = USER_TABLE.get_item(Key={'id': user_id})
+        item = result.get("Item")
+        return item is not None
+    except Exception as e:
+        logger.error(f"DynamoDB検索エラー (user_id: {user_id}): {str(e)}")
+        # エラーの場合は安全のため存在しないものとして扱う
+        return False
+
+def is_today_holiday():
+    """祝日判定Lambdaを呼び出す"""
+    try:
+        response = LAMBDA_CLIENT.invoke(
+            FunctionName=CHECK_HOLIDAY_LAMBDA_NAME,
+            InvocationType='RequestResponse',
+        )
+        payload_str = response['Payload'].read().decode('utf-8')
+        logger.info(f"祝日Lambda応答: {payload_str}")
+        payload = json.loads(payload_str)
+
+        if response['StatusCode'] != 200:
+            logger.info(f"祝日判定Lambdaのステータスコード: {response['StatusCode']}")
+            return True  # 念のため、祝日とみなして処理スキップ
+
+        body = json.loads(payload.get("body", "{}"))
+        return body.get("is_holiday", True)  # デフォルト True = 安全優先でスキップ
+
+    except Exception as e:
+        logger.error(f"祝日判定Lambdaの呼び出しに失敗: {str(e)}", exc_info=True)
+        return True  # エラー時は祝日扱いにしてスキップ
+
+def response(status_code, body):
+    """共通のレスポンスフォーマット"""
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        },
+        "body": json.dumps(body, ensure_ascii=False)
+    }
