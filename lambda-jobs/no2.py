@@ -1,50 +1,40 @@
 import boto3
 import botocore
-import traceback
 
 BUCKET_NAME = "hoge"
-KEY = "file_no2.txt"
+OBJECT_KEY = "go.txt"
 
 s3 = boto3.client("s3")
 
-def read_file_from_s3(bucket, key):
+def check_file_exists(bucket, key):
     try:
-        response = s3.get_object(Bucket=bucket, Key=key)
-        content = response['Body'].read().decode('utf-8').strip()
-        return content
+        s3.head_object(Bucket=bucket, Key=key)
+        return True
     except botocore.exceptions.ClientError as e:
-        print(f"ファイル取得エラー: {e}")
-        return None
+        if e.response["Error"]["Code"] == "404":
+            return False
+        else:
+            raise  # その他のエラーは再スロー
 
-def write_file_to_s3(bucket, key, content):
+def delete_file(bucket, key):
     try:
-        s3.put_object(Bucket=bucket, Key=key, Body=content.encode('utf-8'))
-        print(f"{key} を更新しました: {content}")
+        s3.delete_object(Bucket=bucket, Key=key)
+        print(f"{key} を削除しました。")
     except Exception as e:
-        print(f"ファイル更新エラー: {e}")
+        print(f"{key} の削除中にエラーが発生しました: {e}")
 
 def main():
-    flag = read_file_from_s3(BUCKET_NAME, KEY)
-    
-    if flag != "No2_ok_to_start":
-        print("処理開始条件が満たされていません。終了します。")
-        return
+    # ファイル存在チェック
+    if not check_file_exists(BUCKET_NAME, OBJECT_KEY):
+        raise FileNotFoundError(f"S3バケット '{BUCKET_NAME}' に '{OBJECT_KEY}' が存在しません。処理を中止します。")
 
     try:
-        # ▼▼▼ ここに実行したい処理を書く ▼▼▼
-        print("処理を開始します...")
-        # --- 模擬処理 (成功する処理) ---
-        result = sum(range(100))  # ここを任意の処理に置き換えてください
-        print(f"処理結果: {result}")
-        # ▲▲▲ ここまで ▲▲▲
+        # メイン処理
+        print("Hello, world")
 
-        # 成功したらファイル更新
-        write_file_to_s3(BUCKET_NAME, KEY, "No2_completed_successfully")
-
-    except Exception as e:
-        print("処理中にエラーが発生しました。")
-        traceback.print_exc()
-        write_file_to_s3(BUCKET_NAME, KEY, "No2_failed")
+    finally:
+        # 最後に go.txt を削除
+        delete_file(BUCKET_NAME, OBJECT_KEY)
 
 if __name__ == "__main__":
     main()
