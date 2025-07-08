@@ -9,12 +9,9 @@ s3 = boto3.client("s3")
 def check_file_exists(bucket, key):
     try:
         s3.head_object(Bucket=bucket, Key=key)
-        return True
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] == "404":
-            return False
-        else:
-            raise  # その他のエラーは再スロー
+    except Exception as e:
+        # オブジェクトがない場合は Lambda を失敗させる（FileNotFoundError）
+        raise FileNotFoundError(f"S3バケット '{bucket}' に '{key}' が存在しません。") from e
 
 def delete_file(bucket, key):
     try:
