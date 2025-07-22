@@ -89,16 +89,25 @@ AIアプリケーションの安全性とコンプライアンスを確保する
 - **コラボレーション**: チーム間での共有と共同開発
 - **テンプレート**: 業界標準のアプリケーションテンプレート
 
-Amazon Bedrock Studio
-　↓
-Amazon Bedrock in SageMaker Unified Studio
-　↓
-Amazon SageMaker Unified Studio　（← ｲﾏｺｺ）
+【補足】
 
-「Amazon Bedrock in SageMaker Unified Studio を使用した生成 AI アプリケーションの迅速な構築 | Amazon Web Services ブログ」https://aws.amazon.com/jp/blogs/news/build-generative-ai-applications-quickly-with-amazon-bedrock-in-sagemaker-unified-studio/
+Amazon Bedrock Studio  
+　↓  
+Amazon Bedrock in SageMaker Unified Studio  
+　↓  
+Amazon SageMaker Unified Studio　（← ｲﾏｺｺ）  
 
-「Amazon Bedrock IDE を使ってみる #AWSreInvent | DevelopersIO」
+「Amazon Bedrock in SageMaker Unified Studio を使用した生成 AI アプリケーションの迅速な構築 | Amazon Web Services ブログ」  https://aws.amazon.com/jp/blogs/news/build-generative-ai-applications-quickly-with-amazon-bedrock-in-sagemaker-unified-studio/
+
+「Amazon Bedrock IDE を使ってみる #AWSreInvent | DevelopersIO」  
 https://dev.classmethod.jp/articles/bedrock-ide-preview/
+
+大阪で使えない
+- SageMaker Unified Studio（東京では使える）
+- Bedrock Prompt Optimization
+- Bedrock Intelligent Prompt Routing
+- Bedrock Custom Model Import
+- Bedrock Model Customization (Fine-tuning)
 
 ### 3.2 Amazon Bedrock Prompt Optimization
 
