@@ -77,7 +77,7 @@ AIアプリケーションの安全性とコンプライアンスを確保する
 
 ## 3. 開発・最適化ツール
 
-### 3.1 Amazon Bedrock Studio
+### 3.1 Amazon SageMaker Unified Studio
 
 #### 3.1.1 概要
 ビジネスユーザーと開発者向けの統合開発環境で、ノーコード/ローコードでAIアプリケーションを構築できます。
@@ -88,6 +88,17 @@ AIアプリケーションの安全性とコンプライアンスを確保する
 - **ナレッジベース統合**: GUIベースのRAGアプリケーション構築
 - **コラボレーション**: チーム間での共有と共同開発
 - **テンプレート**: 業界標準のアプリケーションテンプレート
+
+Amazon Bedrock Studio
+　↓
+Amazon Bedrock in SageMaker Unified Studio
+　↓
+Amazon SageMaker Unified Studio　（← ｲﾏｺｺ）
+
+「Amazon Bedrock in SageMaker Unified Studio を使用した生成 AI アプリケーションの迅速な構築 | Amazon Web Services ブログ」https://aws.amazon.com/jp/blogs/news/build-generative-ai-applications-quickly-with-amazon-bedrock-in-sagemaker-unified-studio/
+
+「Amazon Bedrock IDE を使ってみる #AWSreInvent | DevelopersIO」
+https://dev.classmethod.jp/articles/bedrock-ide-preview/
 
 ### 3.2 Amazon Bedrock Prompt Optimization
 
