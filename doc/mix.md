@@ -1,370 +1,228 @@
-# Amazon Bedrock 統合プラットフォーム システム基本設計書
-
-## 1. Amazon Bedrock プラットフォーム概要
-
-Amazon Bedrockは、基盤モデル（Foundation Models）を活用したAIアプリケーション構築のための包括的なフルマネージドプラットフォームです。本プラットフォームは、モデル提供から開発ツール、運用管理まで一貫したサービス群を提供し、企業レベルのAIソリューション構築を支援します。
-
----
-
-## 2. コアコンポーネント
-
-### 2.1 Amazon Bedrock Foundation Models
-
-#### 2.1.1 概要
-Amazon Bedrock Foundation Modelsは、複数のAIプロバイダーが提供する事前訓練済み大規模言語モデルへの統一アクセスを提供するサービスです。
-
-#### 2.1.2 提供モデル
-- **Anthropic Claude**: Claude 3 Opus、Claude 3 Sonnet、Claude 3 Haiku
-- **Amazon Titan**: Text、Embeddings、Multimodal
-- **Meta Llama**: Llama 2、Llama 3
-- **Cohere**: Command、Embed
-- **AI21 Labs**: Jurassic-2
-- **Stability AI**: Stable Diffusion XL
-
-#### 2.1.3 選択指針
-- **高精度タスク**: Claude 3 Opus
-- **バランス型**: Claude 3 Sonnet
-- **高速・軽量**: Claude 3 Haiku、Titan Text Express
-- **埋め込み**: Titan Embeddings、Cohere Embed
-- **画像生成**: Stable Diffusion XL
-
-### 2.2 Amazon Bedrock Knowledge Base
-
-#### 2.2.1 概要
-組織の独自データを活用したRAG（Retrieval Augmented Generation）を実現するナレッジベース管理サービスです。
-
-#### 2.2.2 主な機能
-- **データソース統合**: S3、SharePoint、Confluence、Webクローリング
-- **ベクトル化処理**: 自動的な文書分割とエンベディング生成
-- **ベクトルストア**: Amazon OpenSearch Serverless、Pinecone、Chroma
-- **検索最適化**: セマンティック検索とハイブリッド検索
-- **メタデータ管理**: 文書属性とアクセス制御情報
-
-#### 2.2.3 アーキテクチャ構成
-```
-データソース (S3/SharePoint/Confluence)
-    ↓
-Data Source Connector
-    ↓
-Text Splitting & Chunking
-    ↓
-Embedding Generation (Titan Embeddings)
-    ↓
-Vector Store (OpenSearch Serverless)
-    ↓
-Retrieval & Ranking
-```
-
-### 2.3 Amazon Bedrock Guardrails
-
-#### 2.3.1 概要
-AIアプリケーションの安全性とコンプライアンスを確保するための包括的なガードレール機能です。
-
-#### 2.3.2 主な機能
-- **コンテンツフィルタリング**: 有害コンテンツの検出と除去
-- **トピック制御**: 特定トピックの回避設定
-- **個人情報保護**: PIIの検出とマスキング
-- **毒性検出**: ヘイトスピーチ、暴力的コンテンツの防止
-- **カスタムポリシー**: 組織固有のガバナンス要件への対応
-
-#### 2.3.3 設定レベル
-- **Low**: 基本的なフィルタリング
-- **Medium**: バランス型の制御
-- **High**: 厳格なコンテンツ制御
-- **Custom**: カスタムルールベース
-
----
-
-## 3. 開発・最適化ツール
-
-### 3.1 Amazon SageMaker Unified Studio
-
-#### 3.1.1 概要
-ビジネスユーザーと開発者向けの統合開発環境で、ノーコード/ローコードでAIアプリケーションを構築できます。
-
-#### 3.1.2 主な機能
-- **ビジュアル開発**: ドラッグ&ドロップによるアプリケーション構築
-- **チャットインターフェース**: 対話型AIアプリケーションのプロトタイピング
-- **ナレッジベース統合**: GUIベースのRAGアプリケーション構築
-- **コラボレーション**: チーム間での共有と共同開発
-- **テンプレート**: 業界標準のアプリケーションテンプレート
-
-【補足】
-
-Amazon Bedrock Studio  
-　↓  
-Amazon Bedrock in SageMaker Unified Studio  
-　↓  
-Amazon SageMaker Unified Studio　（← ｲﾏｺｺ）  
-
-「Amazon Bedrock in SageMaker Unified Studio を使用した生成 AI アプリケーションの迅速な構築 | Amazon Web Services ブログ」  https://aws.amazon.com/jp/blogs/news/build-generative-ai-applications-quickly-with-amazon-bedrock-in-sagemaker-unified-studio/
-
-「Amazon Bedrock IDE を使ってみる #AWSreInvent | DevelopersIO」  
-https://dev.classmethod.jp/articles/bedrock-ide-preview/
-
-大阪で使えない
-- SageMaker Unified Studio（東京では使える）
-- Bedrock Prompt Optimization
-- Bedrock Intelligent Prompt Routing
-- Bedrock Custom Model Import
-- Bedrock Model Customization (Fine-tuning)
-
-### 3.2 Amazon Bedrock Prompt Optimization
-
-#### 3.2.1 概要
-プロンプトの効果を自動的に分析・最適化し、モデルの性能を向上させるサービスです。
-
-#### 3.2.2 最適化手法
-- **A/Bテスト**: 複数プロンプトバリエーションの自動比較
-- **性能メトリクス**: 精度、関連性、レスポンス時間の測定
-- **自動改善**: 機械学習による継続的なプロンプト改善
-- **ベストプラクティス**: 業界標準のプロンプトパターン適用
-
-### 3.3 Amazon Bedrock Intelligent Prompt Routing
-
-#### 3.3.1 概要
-リクエストの特性に基づいて最適なモデルを自動選択するインテリジェントルーティング機能です。
-
-#### 3.3.2 ルーティング要素
-- **コンテンツ複雑度**: タスクの難易度に応じたモデル選択
-- **レスポンス速度要件**: レイテンシ要求に基づく最適化
-- **コスト効率**: 予算制約を考慮したモデル選択
-- **専門性**: 特定領域に特化したモデルの活用
-
----
-
-## 4. ワークフロー・オーケストレーション
-
-### 4.1 Amazon Bedrock Flows
-
-#### 4.1.1 概要
-生成AIアプリケーションのワークフローをGUIベースで構築・管理できるフルマネージドサービスです。
-
-#### 4.1.2 主な機能
-- **ビジュアルワークフロー設計**: ドラッグ&ドロップによる直感的な設計
-- **条件分岐処理**: 動的な処理フロー制御
-- **状態管理**: 複雑な会話コンテキストの維持
-- **外部システム連携**: AWS サービスと外部APIの統合
-- **エラーハンドリング**: 例外処理とリトライメカニズム
-
-#### 4.1.3 利用シナリオ
-- **カスタマーサポート**: 多段階の問題解決フロー
-- **コンテンツ生成**: 企画→作成→校正の自動化
-- **データ分析**: 収集→前処理→分析→レポート生成
-
-### 4.2 Amazon Bedrock Agents
-
-#### 4.2.1 概要
-自然言語での指示を理解し、複数のタスクを自動実行する知的エージェントを構築するサービスです。
-
-#### 4.2.2 主な機能
-- **自然言語理解**: ユーザー意図の解析と適切なアクション実行
-- **Function Calling**: 外部API、データベース、AWSサービスとの連携
-- **マルチターン会話**: 複雑なタスクの段階的実行
-- **メモリ機能**: 会話履歴と実行コンテキストの保持
-- **マルチエージェント協調**: 複数エージェントによる協調処理
-
-#### 4.2.3 エージェント構成要素
-- **Foundation Model**: ベースとなる言語モデル
-- **Instructions**: エージェントの役割と動作指針
-- **Action Groups**: 実行可能なアクション定義
-- **Knowledge Bases**: 参照可能なナレッジベース
-
----
-
-## 5. 運用・管理機能
-
-### 5.1 Amazon Bedrock Model Evaluation
-
-#### 5.1.1 概要
-モデルの性能を客観的に評価し、最適なモデル選択を支援する評価フレームワークです。
-
-#### 5.1.2 評価手法
-- **自動評価**: 事前定義された指標に基づき、モデルの出力を自動的に評価
-- **人的評価**: 人間の評価者がモデルの出力を主観的に評価
-- **AWSマネージド評価**: AWSチームに評価作業を委託
-
-#### 5.1.3 評価指標
-- **自動評価**: 精度（Accuracy）、ROUGE（Recall-Oriented Understudy for Gisting Evaluation）、BLEU（Bilingual Evaluation Understudy）、BERTScore（文脈を考慮した類似度評価）、毒性スコア（Toxicity Score）
-- **人的評価**: 任意の指標（親しみやすさ、スタイル、ブランドボイスの遵守など）
-
-
-### 5.2 Amazon Bedrock Model Invocation Logging
-
-#### 5.2.1 概要
-モデル呼び出しの詳細ログを収集・分析し、運用監視とコンプライアンス対応を支援します。
-
-#### 5.2.2 ログ情報
-- **リクエスト詳細**: 入力プロンプト、パラメータ設定
-- **レスポンス詳細**: 生成コンテンツ、メタデータ
-- **実行メトリクス**: レスポンス時間、トークン数、コスト
-- **セキュリティ情報**: ユーザー認証、アクセス権限
-
-#### 5.2.3 統合先
-- **Amazon CloudWatch**: メトリクス監視とアラート
-- **Amazon S3**: 長期ログ保存
-- **Amazon OpenSearch**: ログ検索と分析
-
-### 5.3 Amazon Bedrock Batch Interface
-
-#### 5.3.1 概要
-大量のリクエストを効率的に処理するためのバッチ処理インターフェースです。
-
-#### 5.3.2 特徴
-- **コスト効率**: リアルタイム処理より最大50%のコスト削減
-- **大量処理**: 数千〜数万件のリクエストを一括処理
-- **非同期実行**: 長時間処理のバックグラウンド実行
-- **結果管理**: 処理結果の一括ダウンロードと管理
-
-#### 5.3.3 利用ケース
-- **大量文書の要約**: 定期的なレポート生成
-- **データセット分析**: 大規模データの一括分析
-- **コンテンツ生成**: マーケティング素材の大量生成
-
----
-
-## 6. カスタマイゼーション機能
-
-### 6.1 Amazon Bedrock Custom Model Import
-
-#### 6.1.1 概要
-外部で訓練したカスタムモデルをBedrock環境にインポートし、統一管理できる機能です。
-
-#### 6.1.2 対応形式
-- **HuggingFace Transformers**: 標準的なTransformerモデル
-- **PyTorch**: PyTorch形式のモデル
-- **TensorFlow**: TensorFlow SavedModel形式
-- **ONNX**: ONNX Runtime対応モデル
-
-#### 6.1.3 インポート要件
-- **モデルサイズ**: 最大制限とメモリ要件
-- **API互換性**: Bedrock標準APIとの互換性
-- **セキュリティ**: モデルの検証とスキャニング
-
-### 6.2 Amazon Bedrock Model Customization
-
-#### 6.2.1 概要
-既存の基盤モデルを組織固有のデータで追加学習し、専門性を向上させる機能です。
-
-#### 6.2.2 カスタマイゼーション手法
-- **Fine-tuning**: 教師ありデータによる追加学習
-- **Continued Pre-training**: ドメイン特化データでの継続事前学習
-- **Retrieval Augmented Fine-tuning**: RAGとFine-tuningの組み合わせ
-
-#### 6.2.3 データ要件
-- **データ品質**: 高品質な訓練データの確保
-- **データ量**: 効果的な学習に必要なデータサイズ
-- **データ形式**: JSON Lines、CSV等の対応形式
-- **ラベリング**: 教師ありデータのアノテーション品質
-
-### 6.3 Amazon Bedrock Provisioned Throughput
-
-#### 6.3.1 概要
-予測可能なワークロードに対して専用キャパシティを確保し、一貫したパフォーマンスを提供する機能です。
-
-#### 6.3.2 特徴
-- **予約キャパシティ**: 専用リソースによる安定したスループット
-- **SLA保証**: レスポンス時間とスループットの保証
-- **コスト予測**: 固定料金による予算管理
-- **スケーリング**: 需要に応じたキャパシティ調整
-
-#### 6.3.3 利用シナリオ
-- **本番環境**: ミッションクリティカルなアプリケーション
-- **大量処理**: 継続的な高スループット要求
-- **SLA要件**: 厳格なパフォーマンス要件がある場合
-
----
-
-## 7. 統合アーキテクチャ設計
-
-### 7.1 サービス連携パターン
-
-```
-Amazon Bedrock Studio (開発環境)
-    ↓
-Amazon Bedrock Flows/Agents (オーケストレーション)
-    ↓
-Foundation Models + Custom Models (推論実行)
-    ↑
-Knowledge Base + Guardrails (データ・安全性)
-    ↓
-Evaluation + Logging (監視・改善)
-```
-
-### 7.2 セキュリティ・ガバナンス
-
-#### 7.2.1 データガバナンス
-- **暗号化**: 保存時・転送時の暗号化（AWS KMS）
-- **アクセス制御**: IAMロールベースの細かな権限管理
-- **監査証跡**: AWS CloudTrailによる全操作の記録
-- **データ分離**: テナント間・プロジェクト間の完全分離
-
-#### 7.2.2 コンプライアンス
-- **GDPR**: 個人情報保護とデータ主体の権利
-- **HIPAA**: 医療情報の適切な取り扱い
-- **SOC2**: セキュリティ統制の実装と監査
-- **ISO27001**: 情報セキュリティ管理システム
-
-### 7.3 パフォーマンス最適化
-
-#### 7.3.1 レスポンス最適化
-- **モデル選択**: タスクに最適なモデルの自動選択
-- **キャッシュ戦略**: 頻繁なクエリの結果キャッシュ
-- **プロビジョンドスループット**: 予測可能なワークロード用
-- **インテリジェントルーティング**: 負荷とレイテンシの最適化
-
-#### 7.3.2 コスト最適化
-- **使用量監視**: リアルタイムコスト追跡
-- **予算アラート**: 閾値を超えた場合の自動通知
-- **リソース最適化**: 未使用リソースの特定と削除
-- **バッチ処理**: 大量処理でのコスト削減
-
----
-
-## 8. 運用監視・保守
-
-### 8.1 監視・アラート
-
-#### 8.1.1 パフォーマンス監視
-- **レスポンス時間**: モデル呼び出しレイテンシ
-- **スループット**: 秒間リクエスト処理数
-- **エラー率**: 4xx/5xxエラーの発生率
-- **可用性**: サービス稼働率とダウンタイム
-
-#### 8.1.2 ビジネスメトリクス
-- **利用状況**: ユーザー数、セッション数
-- **コスト**: 日次・月次の利用料金
-- **品質**: ユーザー満足度、タスク成功率
-- **セキュリティ**: 異常アクセス、ポリシー違反
-
-### 8.2 継続的改善
-
-#### 8.2.1 モデル性能向上
-- **定期評価**: 月次・四半期でのモデル性能評価
-- **A/Bテスト**: 新バージョンとの比較実験
-- **フィードバック収集**: ユーザーからの品質フィードバック
-- **再学習**: 最新データでのモデル更新
-
-#### 8.2.2 システム最適化
-- **容量計画**: 将来需要の予測と準備
-- **アーキテクチャ見直し**: 技術進歩に応じた設計更新
-- **セキュリティ強化**: 新脅威に対する対策実装
-- **プロセス改善**: 運用効率化の継続的な取り組み
-
----
-
-## 9. 今後の拡張性
-
-### 9.1 技術的進歩への対応
-- **マルチモーダル**: 音声・画像・動画処理の統合
-- **エッジコンピューティング**: ローカル推論環境の構築
-- **量子コンピューティング**: 将来の計算基盤への対応
-- **AGI技術**: 汎用人工知能への発展対応
-
-### 9.2 ビジネス拡張
-- **グローバル展開**: 多地域・多言語対応
-- **業界特化**: 医療・金融・製造業等の専門化
-- **パートナー連携**: サードパーティツールとの統合
-- **エコシステム構築**: 開発者コミュニティの育成
-
-この包括的な設計書により、Amazon Bedrockの全機能を活用した企業レベルのAI基盤システムの構築・運用が可能になります。各コンポーネントが有機的に連携し、安全で効率的、かつ拡張可能なAIソリューションを提供します。
+import json
+import requests
+import boto3
+from typing import Dict, Any
+
+def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """
+    Bedrock AgentからのリクエストをLiteLLMに転送するLambda関数
+    """
+    
+    # LiteLLMのエンドポイント
+    LITELLM_ENDPOINT = "https://litellm.jp/v1/chat/completions"
+    
+    try:
+        # Bedrock Agentからのイベントをログ出力（デバッグ用）
+        print(f"Received event: {json.dumps(event, ensure_ascii=False)}")
+        
+        # Bedrock Agentからの入力を取得
+        # イベント構造は実際のBedrock Agentの設定によって異なる場合があります
+        agent_input = event.get('inputText', '')
+        session_id = event.get('sessionId', '')
+        
+        # LiteLLM用のリクエストペイロードを構築
+        litellm_payload = {
+            "model": "gpt-3.5-turbo",  # 使用したいモデルを指定
+            "messages": [
+                {
+                    "role": "user",
+                    "content": agent_input
+                }
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1000
+        }
+        
+        # LiteLLMにリクエストを送信
+        headers = {
+            "Content-Type": "application/json",
+            # 必要に応じてAPIキーを追加
+            # "Authorization": f"Bearer {os.environ.get('LITELLM_API_KEY')}"
+        }
+        
+        response = requests.post(
+            LITELLM_ENDPOINT,
+            json=litellm_payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        # レスポンスの確認
+        response.raise_for_status()
+        litellm_response = response.json()
+        
+        # LiteLLMからのレスポンスを取得
+        if 'choices' in litellm_response and len(litellm_response['choices']) > 0:
+            ai_response = litellm_response['choices'][0]['message']['content']
+        else:
+            ai_response = "申し訳ございませんが、応答を生成できませんでした。"
+        
+        # Bedrock Agent用のレスポンス形式に変換
+        bedrock_response = {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": "litellm_action_group",
+                "function": "send_to_litellm",
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {
+                            "body": ai_response
+                        }
+                    }
+                }
+            },
+            "sessionAttributes": {
+                "sessionId": session_id
+            }
+        }
+        
+        print(f"Sending response: {json.dumps(bedrock_response, ensure_ascii=False)}")
+        return bedrock_response
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {str(e)}")
+        error_response = {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": "litellm_action_group", 
+                "function": "send_to_litellm",
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {
+                            "body": f"エラーが発生しました: {str(e)}"
+                        }
+                    }
+                }
+            }
+        }
+        return error_response
+        
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        error_response = {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": "litellm_action_group",
+                "function": "send_to_litellm", 
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {
+                            "body": f"予期しないエラーが発生しました: {str(e)}"
+                        }
+                    }
+                }
+            }
+        }
+        return error_response
+
+
+# 代替案: より詳細なエラーハンドリングとログ機能付きバージョン
+def enhanced_lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """
+    拡張版: より詳細なログとエラーハンドリング
+    """
+    
+    # CloudWatch Logsにログを記録
+    import logging
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    
+    LITELLM_ENDPOINT = "https://litellm.jp/v1/chat/completions"
+    
+    try:
+        logger.info(f"Lambda invoked with event: {json.dumps(event, ensure_ascii=False)}")
+        
+        # 入力の検証
+        if 'inputText' not in event:
+            raise ValueError("inputText not found in event")
+            
+        agent_input = event['inputText']
+        session_id = event.get('sessionId', 'unknown')
+        
+        # 空の入力チェック
+        if not agent_input.strip():
+            raise ValueError("Empty input text provided")
+        
+        # LiteLLMリクエストの準備
+        litellm_payload = {
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "system", 
+                    "content": "あなたは親切で知識豊富なAIアシスタントです。"
+                },
+                {
+                    "role": "user",
+                    "content": agent_input
+                }
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1000,
+            "stream": False
+        }
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        logger.info(f"Sending request to LiteLLM: {json.dumps(litellm_payload, ensure_ascii=False)}")
+        
+        # LiteLLMにリクエスト送信
+        response = requests.post(
+            LITELLM_ENDPOINT,
+            json=litellm_payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        logger.info(f"LiteLLM response status: {response.status_code}")
+        
+        response.raise_for_status()
+        litellm_response = response.json()
+        
+        logger.info(f"LiteLLM response: {json.dumps(litellm_response, ensure_ascii=False)}")
+        
+        # レスポンス解析
+        ai_response = litellm_response['choices'][0]['message']['content']
+        
+        # Bedrock Agent形式のレスポンス
+        bedrock_response = {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": "litellm_action_group",
+                "function": "send_to_litellm",
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {
+                            "body": ai_response
+                        }
+                    }
+                }
+            },
+            "sessionAttributes": {
+                "sessionId": session_id,
+                "timestamp": context.aws_request_id
+            }
+        }
+        
+        logger.info("Successfully processed request")
+        return bedrock_response
+        
+    except Exception as e:
+        logger.error(f"Error processing request: {str(e)}", exc_info=True)
+        
+        error_response = {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": "litellm_action_group",
+                "function": "send_to_litellm",
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {
+                            "body": f"処理中にエラーが発生しました。管理者にお問い合わせください。（エラーID: {context.aws_request_id}）"
+                        }
+                    }
+                }
+            }
+        }
+        return error_response
