@@ -1,12 +1,12 @@
 # Dockerを使用してLambdaレイヤーを作成（最も確実な方法）
 
-# 1. 作業ディレクトリの作成
-mkdir -p ~/lambda-layers/requests-layer
-cd ~/lambda-layers/requests-layer
+```
+FROM amazonlinux:2
 
-# 2. Dockerfileの作成
-cat > Dockerfile << 'EOF'
-FROM public.ecr.aws/lambda/python:3.13
+# 必要なパッケージをインストール
+RUN yum update -y && \
+    yum install -y python3 python3-pip zip && \
+    yum clean all
 
 # 作業ディレクトリを作成
 WORKDIR /opt
@@ -15,18 +15,19 @@ WORKDIR /opt
 RUN mkdir python
 
 # requestsをインストール
-RUN pip install requests -t python/
+RUN pip3 install requests -t python/
 
 # 不要ファイルを削除
-RUN find python/ -type d -name "__pycache__" -exec rm -rf {} + || true
-RUN find python/ -name "*.pyc" -delete || true
-RUN find python/ -name "*.pyo" -delete || true
+RUN find python/ -type d -name "__pycache__" -exec rm -rf {} + || true && \
+    find python/ -name "*.pyc" -delete || true && \
+    find python/ -name "*.pyo" -delete || true
 
 # ZIPファイルを作成
-RUN cd /opt && zip -r requests-layer.zip python/
+RUN zip -r requests-layer.zip python/
 
 CMD ["echo", "Layer created successfully"]
-EOF
+```
+
 
 # 3. Dockerイメージをビルド
 docker build -t lambda-layer-builder .
