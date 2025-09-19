@@ -1,3 +1,18 @@
+aws bedrock-agent-runtime retrieve-and-generate \
+  --session-id "session01" \
+  --input '{"text": "MLB のドジャースの本拠地は？"}' \
+  --retrieve-and-generate-configuration '{
+    "type": "AGENT",
+    "agent": {
+      "agentId": "9T42WAYFKL",
+      "agentAliasId": "3OBIYZOTZB"
+    }
+  }' \
+  --region ap-northeast-1 \
+  --output json
+
+--------------------------------
+
 import boto3
 
 client = boto3.client("bedrock-agent-runtime", region_name="ap-northeast-1")
