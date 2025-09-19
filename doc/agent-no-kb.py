@@ -14,3 +14,37 @@ for event in response_stream["completion"]:
         print(event["chunk"]["bytes"].decode("utf-8"), end="")
     elif "trace" in event:
         print("\n[TRACE EVENT]", event["trace"])
+
+#---------------------------------------------------
+
+import boto3
+from botocore.config import Config
+
+# タイムアウト設定を追加
+config = Config(
+    read_timeout=300,  # 5分
+    connect_timeout=60,  # 1分
+    retries={
+        'max_attempts': 3,
+        'mode': 'adaptive'
+    }
+)
+
+client = boto3.client(
+    "bedrock-agent-runtime", 
+    region_name="ap-northeast-1",
+    config=config  # 設定を追加
+)
+
+response_stream = client.invoke_agent(
+    agentId="9T42WAYFKL",
+    agentAliasId="3OBIYZOTZB",
+    sessionId="session01",
+    inputText="MLB のドジャースの本拠地は？"
+)
+
+for event in response_stream["completion"]:
+    if "chunk" in event:
+        print(event["chunk"]["bytes"].decode("utf-8"), end="")
+    elif "trace" in event:
+        print("\n[TRACE EVENT]", event["trace"])
