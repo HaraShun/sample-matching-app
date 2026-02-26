@@ -1,0 +1,74 @@
+状況としてはかなり自然で、**“再アップロード時に Content-Type（MIMEタイプ）が推測されて `text/csv` に自動設定された”**のが原因です。
+
+GCS ではオブジェクトごとに `Content-Type` がメタデータとして付いていて、
+
+* もともとのオブジェクト：`application/octet-stream`（不明扱い）
+* Windowsで落として拡張子付き（`.csv`）のまま再アップロード、またはアップロードツールが中身/拡張子から推測
+  → `text/csv` に変わる
+
+…がよく起きます（特にブラウザ、GUIツール、`gsutil`/SDK の自動推測）。
+
+---
+
+## なぜ変わる？
+
+再アップロードは「コピー」ではなく「新規オブジェクト作成」なので、アップロード経路が **拡張子やファイル内容から MIME を推測**して `Content-Type` を付け直します。
+
+Windows だとありがちなパターンはこれです：
+
+* エクスプローラ/ブラウザ経由でアップロード → ほぼ確実に拡張子で推測される
+* `gsutil cp local.csv gs://...` → `local.csv` の拡張子から推測されがち
+* 逆に `gsutil cp -Z`（圧縮）や、明示指定してた経路だと別の値になることも
+
+---
+
+## 影響はある？
+
+多くの場合は **影響ない**ですが、利用先によっては挙動が変わります。
+
+* ブラウザで開いた時：`text/csv` だと表示/ダウンロードの扱いが変わることがある
+* Data処理系：`text/csv` の方がむしろ嬉しいこともある
+* 「必ず `application/octet-stream` であるべき」要件があるなら、明示的に固定すべき
+
+---
+
+## `application/octet-stream` のままに戻す（または固定する）方法
+
+### 1) いちばん確実：アップロード時に Content-Type を明示する
+
+**gsutil の例**
+
+```bash
+gsutil -h "Content-Type:application/octet-stream" cp local.csv gs://YOUR_BUCKET/path/file.csv
+```
+
+**すでに上がってるオブジェクトの Content-Type だけ直す**
+
+```bash
+gsutil setmeta -h "Content-Type:application/octet-stream" gs://YOUR_BUCKET/path/file.csv
+```
+
+### 2) GCS 内で「コピー」してメタデータだけ変える（ローカル不要）
+
+```bash
+gsutil -h "Content-Type:application/octet-stream" cp -p gs://YOUR_BUCKET/path/file.csv gs://YOUR_BUCKET/path/file.csv
+```
+
+※ `-p` は ACL/メタデータ保持に関係しますが、指定の仕方次第で挙動が変わるので、上の `setmeta` の方が安全なことが多いです。
+
+---
+
+## まず確認したいコマンド（原因切り分け）
+
+どの経路でどう変わったか確認するなら：
+
+```bash
+gsutil stat gs://YOUR_BUCKET/path/file.csv
+```
+
+ここで `Content-Type:` が `text/csv` になっているはずです。
+
+---
+
+もしよければ、**再アップロードした方法**だけ教えてください（例：GCP コンソールのブラウザ、gsutil、Storage Explorer、アプリ/SDK）。
+それに合わせて「その手段で MIME 推測を止める/固定する最短手順」をピンポイントで書きます。
