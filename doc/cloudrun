@@ -1,0 +1,37 @@
+
+```
+3STEPの整理
+STEP | 内容 | 状態 | 対応するAPIメソッド
+
+① アップグレード | Gen2（Cloud Run）版を並行作成 | Gen1でトラフィック受付中 | setupFunctionUpgradeConfig
+② トラフィック切り替え | Gen2へトラフィックを向ける | Gen2で実トラフィックを処理 | redirectFunctionUpgradeTraffic
+③ コミット | Gen1を削除・アップグレード確定 | Gen1が消えるだけ | commitFunctionUpgrade
+```
+
+Google Cloud の公式ドキュメントでは、redirectFunctionUpgradeTraffic について
+
+“Changes the traffic target of a function from the original 1st gen function to the 2nd gen copy.”
+“After this operation, all new traffic will be served by the 2nd gen function copy.”
+
+「関数のトラフィックターゲットを、オリジナルの第1世代関数から第2世代関数のコピーに変更します。」
+「この操作の後、すべての新規トラフィックは第2世代関数のコピーによって処理されるようになります。」
+
+と記載されています。つまり、トラフィック切り替え後の時点で、新規リクエストの処理先はすでに第2世代側です。
+
+『 Method: projects.locations.functions.redirectFunctionUpgradeTraffic  |  Cloud Run functions  |  Google Cloud Documentation 』
+(https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions/redirectFunctionUpgradeTraffic )
+
+
+
+一方で、commitFunctionUpgrade については
+
+“Finalizes the function upgrade, after which the upgrade cannot be rolled back.”
+“Deletes all original 1st gen-related configuration and resources.”
+
+「機能のアップグレードを完了します。完了後は、アップグレードをロールバックすることはできません。」
+「第1世代に関連するすべての元の構成とリソースを削除します。」
+
+とあり、コミットはアップグレードの最終確定処理であり、旧第1世代関連の設定・リソースが削除され、ロールバック不可になります。
+
+『 Method: projects.locations.functions.commitFunctionUpgrade  |  Cloud Run functions  |  Google Cloud Documentation 』
+(https://docs.cloud.google.com/functions/docs/reference/rest/v2alpha/projects.locations.functions/commitFunctionUpgrade )
