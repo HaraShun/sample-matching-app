@@ -1,0 +1,56 @@
+VPC-SC / Access Context Manager 通知に関する確認（access level の identity format について）
+
+---
+
+Google Cloud サポートご担当者様
+
+お世話になっております。
+
+2026年○月○日付で、以下件名の通知を受領しました。
+
+[Action Required] Update your VPC-SC service parameters and Access Levels to prevent errors as soon as possible
+
+本通知に関連して、当環境の Access Context Manager の設定について確認させていただきたい事項がございます。
+
+■ 現状の設定
+
+当環境では VPC Service Controls（VPC-SC）および Access Context Manager（ACM）を利用しています。
+
+VPC-SC 側の ingress / egress ルールについては、少なくとも確認対象の設定では個別 identity の列挙は見当たりませんでした。
+
+一方、Access Context Manager の access level の members に、以下の形式で Google グループと思われるメールアドレスが設定されています。
+
+user:{グループのメールアドレス}
+
+■ 確認事項
+
+（１）上記の user:{グループのメールアドレス} という設定は、今回の通知で指摘されている「不正な identity format」に該当しますでしょうか。
+
+（２）公式ドキュメントでは、access level の members について「グループはサポートされていません」と記載されています。
+この設定が現時点で保存・利用できている状態ですが、2026年9月1日以降にアクセス拒否や設定変更失敗の対象となる可能性はありますでしょうか。
+
+参考：
+アクセスレベルの属性 | Access Context Manager
+https://docs.cloud.google.com/access-context-manager/docs/access-level-attributes?hl=ja#members
+
+（３）上記設定が正式には未サポート、または今回通知の影響対象である場合、推奨される対応方法をご教示ください。
+例えば、以下のどれが適切でしょうか。
+　・グループのメンバーを個別に user: で登録し直す
+　・別の方法でグループ単位のアクセス制御を実現する
+　・その他、Google Cloud として推奨される構成へ変更する
+
+（４）当該設定を修正する場合、反映までの目安時間や、サービス影響の考え方があればご教示ください。
+
+（５）可能であれば、今回の通知との関係も含め、当該設定について
+「現状のままで問題ない」
+のか、
+「是正が必要」
+なのかを明確にご回答いただけますと幸いです。
+
+■ 環境情報
+
+組織 ID：（記載）
+アクセスポリシー ID：（記載）
+対象の access level 名：（記載）
+
+お手数をおかけしますが、ご確認のほどよろしくお願いいたします。
