@@ -90,3 +90,7 @@ basic:
     - serviceAccount:sa@proj.iam.gserviceaccount.com  ← OK
     - serviceAccount:taro@example.com  ← NG（人間なのにserviceAccount）
 ```
+
+
+『 アクセスレベルの属性  |  Access Context Manager  |  Google Cloud Documentation 』
+(https://docs.cloud.google.com/access-context-manager/docs/access-level-attributes?hl=ja#members )
