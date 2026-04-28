@@ -72,3 +72,40 @@ https://docs.cloud.google.com/vpc-service-controls/docs/dry-run-mode?hl=ja
 つまり、dry run の設定は許可・拒否いずれの方向についても実際のアクセス制御には影響せず、Enforced の設定のみが実際のアクセス制御を行う、という認識で合っているかを確認させていただきたく存じます。
 
 お手数ですが、よろしくお願いいたします。
+
+---
+
+```
+# 1. 現行定義をバックアップ
+gcloud access-context-manager levels describe LEVEL_NAME \
+  --policy=POLICY_NUMBER \
+  --format=yaml > before-LEVEL_NAME.yaml
+
+# 2. 編集用ファイルを作成
+cp before-LEVEL_NAME.yaml update-LEVEL_NAME.yaml
+
+# 3. update-LEVEL_NAME.yaml を編集
+#    - name:
+#    - title:
+#    - description:
+#    - basic:
+#    - conditions:
+#    を取り除く
+#    そのうえで user:{IAMグループのメールアドレス} の行だけ削除する
+#    残したい user: / serviceAccount: / ipSubnetworks 等は残す
+
+注: describe コマンドの出力を使用してベーシック アクセスレベルを更新または作成するには、.yaml ファイルにレスポンスを送信してから、ファイルを編集して、name、title、description、basic、conditions の各行を削除します。
+『 アクセスレベルの管理  |  Access Context Manager  |  Google Cloud Documentation 』
+(https://docs.cloud.google.com/access-context-manager/docs/manage-access-levels?utm_source=chatgpt.com&hl=ja )
+
+
+# 4. 上書き更新
+gcloud access-context-manager levels update LEVEL_NAME \
+  --policy=POLICY_NUMBER \
+  --basic-level-spec=update-LEVEL_NAME.yaml
+
+# 5. 反映確認
+gcloud access-context-manager levels describe LEVEL_NAME \
+  --policy=POLICY_NUMBER \
+  --format=yaml
+```
